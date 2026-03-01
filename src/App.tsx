@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import LoginPage from "@/pages/LoginPage";
 import Dashboard from "@/pages/Dashboard";
 import RidersPage from "@/pages/RidersPage";
 import MotorcyclesPage from "@/pages/MotorcyclesPage";
@@ -21,12 +23,72 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
-          <Route path="/riders" element={<AppLayout><RidersPage /></AppLayout>} />
-          <Route path="/motorcycles" element={<AppLayout><MotorcyclesPage /></AppLayout>} />
-          <Route path="/remittances" element={<AppLayout><RemittancesPage /></AppLayout>} />
-          <Route path="/expenses" element={<AppLayout><ExpensesPage /></AppLayout>} />
-          <Route path="/compliance" element={<AppLayout><CompliancePage /></AppLayout>} />
+          {/* Public Routes */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Dashboard />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/riders"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <RidersPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motorcycles"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <MotorcyclesPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/remittances"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <RemittancesPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/expenses"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ExpensesPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/compliance"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CompliancePage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
