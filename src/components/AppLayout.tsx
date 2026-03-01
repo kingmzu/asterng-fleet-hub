@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronRight,
 } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -50,11 +51,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       >
         {/* Logo */}
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary font-display text-sm font-bold text-sidebar-primary-foreground">
-            A+
-          </div>
+          <img src={logo} alt="ASTERNG logo" className="h-9 w-9 object-contain" />
           <div>
-            <h1 className="font-display text-base font-bold text-sidebar-accent-foreground">ASTERNG</h1>
+            <h1 className="font-display text-base font-bold text-sidebar-primary">ASTERNG</h1>
             <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/60">Aster A+ Fleet</p>
           </div>
           <button
