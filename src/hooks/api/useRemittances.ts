@@ -1,94 +1,61 @@
 /**
- * Remittances Hooks
- *
- * React Query hooks for payment/remittance operations
+ * Remittances Hooks - Supabase implementation
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '@/api/client';
-import type { Remittance } from '@/lib/mockData';
-
-interface RemittancesResponse {
-  success: boolean;
-  data: Remittance[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    pages: number;
-  };
-}
-
-interface RemittanceResponse {
-  success: boolean;
-  data: Remittance;
-}
-
-interface RemittanceStats {
-  totalCollected: number;
-  totalOverdue: number;
-  paymentsToday: number;
-  collectionRate: number;
-  byStatus: {
-    paid: number;
-    partial: number;
-    overdue: number;
-  };
-}
+import { supabase } from '@/integrations/supabase/client';
+import type { TablesInsert } from '@/integrations/supabase/types';
 
 export const useRemittances = (
   page = 1,
   limit = 20,
   status = 'all',
-  search = '',
-  from?: string,
-  to?: string
+  search = ''
 ) => {
   return useQuery({
-    queryKey: ['remittances', page, limit, status, search, from, to],
+    queryKey: ['remittances', page, limit, status, search],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        status,
-        search,
-      });
+      let query = supabase
+        .from('remittances')
+        .select('*, riders!inner(name)', { count: 'exact' });
 
-      if (from) params.append('from', from);
-      if (to) params.append('to', to);
+      if (status !== 'all') {
+        query = query.eq('status', status);
+      }
+      if (search) {
+        query = query.ilike('riders.name', `%${search}%`);
+      }
 
-      const response = await apiClient.get<RemittancesResponse>(
-        `/remittances?${params.toString()}`
-      );
-      return response.data;
+      const from = (page - 1) * limit;
+      query = query.range(from, from + limit - 1).order('date', { ascending: false });
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+
+      return {
+        data: (data || []).map((r: any) => ({
+          ...r,
+          rider_name: r.riders?.name || 'Unknown',
+        })),
+        pagination: {
+          total: count || 0,
+          page,
+          limit,
+          pages: Math.ceil((count || 0) / limit),
+        },
+      };
     },
-    staleTime: 1 * 60 * 1000,
-  });
-};
-
-export const useRemittance = (id: string) => {
-  return useQuery({
-    queryKey: ['remittance', id],
-    queryFn: async () => {
-      const response = await apiClient.get<RemittanceResponse>(
-        `/remittances/${id}`
-      );
-      return response.data.data;
-    },
-    enabled: !!id,
+    staleTime: 60 * 1000,
   });
 };
 
 export const useCreateRemittance = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (data: Partial<Remittance>) => {
-      const response = await apiClient.post<RemittanceResponse>(
-        '/remittances',
-        data
-      );
-      return response.data.data;
+    mutationFn: async (data: TablesInsert<'remittances'>) => {
+      const { data: result, error } = await supabase.from('remittances').insert(data).select().single();
+      if (error) throw error;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['remittances'] });
@@ -97,108 +64,29 @@ export const useCreateRemittance = () => {
   });
 };
 
-export const useUpdateRemittanceStatus = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const response = await apiClient.patch<RemittanceResponse>(
-        `/remittances/${id}/status`,
-        { status }
-      );
-      return response.data.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['remittances'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['riders'] });
-    },
-  });
-};
-
-export const useRemittancesByRider = (
-  riderId: string,
-  from?: string,
-  to?: string
-) => {
+export const useRemittanceStats = () => {
   return useQuery({
-    queryKey: ['remittances', 'rider', riderId, from, to],
+    queryKey: ['remittances', 'stats'],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (from) params.append('from', from);
-      if (to) params.append('to', to);
+      const { data, error } = await supabase.from('remittances').select('amount, status');
+      if (error) throw error;
 
-      const response = await apiClient.get<{
-        success: boolean;
-        data: {
-          remittances: Remittance[];
-          summary: {
-            totalAmount: number;
-            paidAmount: number;
-            pendingAmount: number;
-          };
-        };
-      }>(`/remittances/rider/${riderId}?${params.toString()}`);
-      return response.data.data;
-    },
-    enabled: !!riderId,
-  });
-};
+      const all = data || [];
+      const paid = all.filter((r) => r.status === 'paid');
+      const overdue = all.filter((r) => r.status === 'overdue');
+      const partial = all.filter((r) => r.status === 'partial');
 
-export const useRemittanceStats = (from?: string, to?: string) => {
-  return useQuery({
-    queryKey: ['remittances', 'stats', from, to],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (from) params.append('from', from);
-      if (to) params.append('to', to);
+      const totalCollected = paid.reduce((s, r) => s + Number(r.amount), 0);
+      const totalOverdue = overdue.reduce((s, r) => s + Number(r.amount), 0);
+      const total = all.reduce((s, r) => s + Number(r.amount), 0);
 
-      const response = await apiClient.get<{
-        success: boolean;
-        data: RemittanceStats;
-      }>(`/remittances/stats?${params.toString()}`);
-      return response.data.data;
+      return {
+        totalCollected,
+        totalOverdue,
+        pendingCount: partial.length,
+        collectionRate: total > 0 ? Math.round((totalCollected / total) * 100) : 0,
+      };
     },
     staleTime: 2 * 60 * 1000,
-  });
-};
-
-export const useOverdueRemittances = () => {
-  return useQuery({
-    queryKey: ['remittances', 'overdue'],
-    queryFn: async () => {
-      const response = await apiClient.get<{
-        success: boolean;
-        data: {
-          overdue: Array<{
-            id: string;
-            riderId: string;
-            riderName: string;
-            amount: number;
-            daysOverdue: number;
-          }>;
-        };
-      }>('/remittances/overdue');
-      return response.data.data.overdue;
-    },
-    staleTime: 2 * 60 * 1000,
-  });
-};
-
-export const useExportRemittances = () => {
-  return useMutation({
-    mutationFn: async (params?: { format?: string; from?: string; to?: string }) => {
-      const queryParams = new URLSearchParams({
-        format: params?.format || 'csv',
-      });
-      if (params?.from) queryParams.append('from', params.from);
-      if (params?.to) queryParams.append('to', params.to);
-
-      const response = await apiClient.get(
-        `/remittances/export?${queryParams.toString()}`,
-        { responseType: 'blob' }
-      );
-      return response.data;
-    },
   });
 };

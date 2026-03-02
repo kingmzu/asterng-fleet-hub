@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useLogout, useCurrentUser, useUserProfile } from '@/hooks/api';
 import {
   LayoutDashboard,
   Users,
@@ -30,6 +31,13 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { mutate: logout } = useLogout();
+  const { user } = useCurrentUser();
+  const { data: profile } = useUserProfile();
+
+  const displayName = profile?.full_name || user?.email || 'User';
+  const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
 
   const currentPage = navItems.find(item => item.to === location.pathname)?.label || 'Dashboard';
 
@@ -90,13 +98,16 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         <div className="border-t border-sidebar-border p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">
-              AD
+              {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-medium text-sidebar-accent-foreground">Admin</p>
-              <p className="truncate text-xs text-sidebar-foreground/60">Founder</p>
+              <p className="truncate text-sm font-medium text-sidebar-accent-foreground">{displayName}</p>
+              <p className="truncate text-xs text-sidebar-foreground/60">{user?.email}</p>
             </div>
-            <button className="rounded-md p-1 text-sidebar-foreground/50 hover:text-sidebar-accent-foreground">
+            <button
+              onClick={() => logout(undefined, { onSuccess: () => navigate('/login') })}
+              className="rounded-md p-1 text-sidebar-foreground/50 hover:text-sidebar-accent-foreground"
+            >
               <LogOut className="h-4 w-4" />
             </button>
           </div>
