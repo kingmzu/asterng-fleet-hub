@@ -1,7 +1,5 @@
 /**
  * API Hooks Barrel Export
- *
- * Central export point for all React Query hooks
  */
 
 export * from './useAuth';

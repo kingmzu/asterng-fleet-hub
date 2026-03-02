@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 type StatusType = 'active' | 'suspended' | 'pending' | 'maintenance' | 'paid' | 'partial' | 'overdue' | 'verified' | 'rejected';
 
 interface StatusBadgeProps {
-  status: StatusType;
+  status: string;
 }
 
 const statusConfig: Record<StatusType, { label: string; className: string }> = {
@@ -19,7 +19,7 @@ const statusConfig: Record<StatusType, { label: string; className: string }> = {
 };
 
 const StatusBadge = ({ status }: StatusBadgeProps) => {
-  const config = statusConfig[status];
+  const config = statusConfig[status as StatusType] || statusConfig.pending;
   return (
     <Badge variant="outline" className={`text-[11px] font-semibold ${config.className}`}>
       {config.label}

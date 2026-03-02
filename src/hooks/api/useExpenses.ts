@@ -1,86 +1,53 @@
 /**
- * Expenses Hooks
- *
- * React Query hooks for expense operations
+ * Expenses Hooks - Supabase implementation
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '@/api/client';
-import type { Expense } from '@/lib/mockData';
-
-interface ExpensesResponse {
-  success: boolean;
-  data: Expense[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    pages: number;
-  };
-}
-
-interface ExpenseResponse {
-  success: boolean;
-  data: Expense;
-}
-
-interface ExpenseStats {
-  totalExpenses: number;
-  byCategory: {
-    [key: string]: {
-      total: number;
-      count: number;
-      average: number;
-    };
-  };
-}
+import { supabase } from '@/integrations/supabase/client';
+import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 export const useExpenses = (
   page = 1,
   limit = 20,
   category = 'all',
-  from?: string,
-  to?: string
+  _search = ''
 ) => {
   return useQuery({
-    queryKey: ['expenses', page, limit, category, from, to],
+    queryKey: ['expenses', page, limit, category],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        category,
-      });
+      let query = supabase.from('expenses').select('*', { count: 'exact' });
 
-      if (from) params.append('from', from);
-      if (to) params.append('to', to);
+      if (category !== 'all') {
+        query = query.eq('category', category);
+      }
 
-      const response = await apiClient.get<ExpensesResponse>(
-        `/expenses?${params.toString()}`
-      );
-      return response.data;
+      const from = (page - 1) * limit;
+      query = query.range(from, from + limit - 1).order('date', { ascending: false });
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+
+      return {
+        data: data || [],
+        pagination: {
+          total: count || 0,
+          page,
+          limit,
+          pages: Math.ceil((count || 0) / limit),
+        },
+      };
     },
-    staleTime: 1 * 60 * 1000,
-  });
-};
-
-export const useExpense = (id: string) => {
-  return useQuery({
-    queryKey: ['expense', id],
-    queryFn: async () => {
-      const response = await apiClient.get<ExpenseResponse>(`/expenses/${id}`);
-      return response.data.data;
-    },
-    enabled: !!id,
+    staleTime: 60 * 1000,
   });
 };
 
 export const useCreateExpense = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (data: Partial<Expense>) => {
-      const response = await apiClient.post<ExpenseResponse>('/expenses', data);
-      return response.data.data;
+    mutationFn: async (data: TablesInsert<'expenses'>) => {
+      const { data: result, error } = await supabase.from('expenses').insert(data).select().single();
+      if (error) throw error;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
@@ -89,118 +56,29 @@ export const useCreateExpense = () => {
   });
 };
 
-export const useUpdateExpense = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Expense> }) => {
-      const response = await apiClient.put<ExpenseResponse>(`/expenses/${id}`, data);
-      return response.data.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-    },
-  });
-};
-
-export const useDeleteExpense = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      await apiClient.delete(`/expenses/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-    },
-  });
-};
-
-export const useExpensesByCategory = (
-  category: string,
-  from?: string,
-  to?: string
-) => {
+export const useExpenseBreakdown = () => {
   return useQuery({
-    queryKey: ['expenses', 'category', category, from, to],
+    queryKey: ['expenses', 'breakdown'],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (from) params.append('from', from);
-      if (to) params.append('to', to);
+      const { data, error } = await supabase.from('expenses').select('category, amount');
+      if (error) throw error;
 
-      const response = await apiClient.get<{
-        success: boolean;
-        data: {
-          category: string;
-          total: number;
-          count: number;
-          expenses: Expense[];
-        };
-      }>(`/expenses/category/${category}?${params.toString()}`);
-      return response.data.data;
-    },
-    enabled: !!category && category !== 'all',
-  });
-};
-
-export const useExpenseStats = (from?: string, to?: string) => {
-  return useQuery({
-    queryKey: ['expenses', 'stats', from, to],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (from) params.append('from', from);
-      if (to) params.append('to', to);
-
-      const response = await apiClient.get<{
-        success: boolean;
-        data: ExpenseStats;
-      }>(`/expenses/stats?${params.toString()}`);
-      return response.data.data;
-    },
-    staleTime: 2 * 60 * 1000,
-  });
-};
-
-export const useExpenseBreakdown = (from?: string, to?: string) => {
-  return useQuery({
-    queryKey: ['expenses', 'breakdown', from, to],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (from) params.append('from', from);
-      if (to) params.append('to', to);
-
-      const response = await apiClient.get<{
-        success: boolean;
-        data: {
-          breakdown: Array<{
-            category: string;
-            total: number;
-            percentage: number;
-          }>;
-        };
-      }>(`/expenses/breakdown?${params.toString()}`);
-      return response.data.data.breakdown;
-    },
-    staleTime: 2 * 60 * 1000,
-  });
-};
-
-export const useExportExpenses = () => {
-  return useMutation({
-    mutationFn: async (params?: { format?: string; from?: string; to?: string }) => {
-      const queryParams = new URLSearchParams({
-        format: params?.format || 'csv',
+      const byCategory: Record<string, number> = {};
+      let total = 0;
+      (data || []).forEach((e) => {
+        const amt = Number(e.amount);
+        byCategory[e.category] = (byCategory[e.category] || 0) + amt;
+        total += amt;
       });
-      if (params?.from) queryParams.append('from', params.from);
-      if (params?.to) queryParams.append('to', params.to);
 
-      const response = await apiClient.get(
-        `/expenses/export?${queryParams.toString()}`,
-        { responseType: 'blob' }
-      );
-      return response.data;
+      const breakdown = Object.entries(byCategory).map(([category, catTotal]) => ({
+        category,
+        total: catTotal,
+        percentage: total > 0 ? Math.round((catTotal / total) * 100) : 0,
+      }));
+
+      return { breakdown };
     },
+    staleTime: 2 * 60 * 1000,
   });
 };

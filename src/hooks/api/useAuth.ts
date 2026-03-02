@@ -1,81 +1,131 @@
 /**
  * Authentication Hooks
- *
- * React Query hooks for authentication operations
+ * React Query hooks for Supabase authentication
  */
 
-import { useMutation, useQuery } from '@tanstack/react-query';
-import apiClient from '@/api/client';
+import { useState, useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import type { User } from '@supabase/supabase-js';
 
 interface LoginPayload {
   email: string;
   password: string;
 }
 
-interface AuthResponse {
-  success: boolean;
-  data: {
-    token: string;
-    user: {
-      id: string;
-      email: string;
-      name: string;
-      role: string;
-    };
-  };
-}
-
-interface CurrentUser {
-  id: string;
+interface SignupPayload {
   email: string;
-  name: string;
-  role: string;
+  password: string;
+  fullName: string;
 }
 
 export const useLogin = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (payload: LoginPayload) => {
-      const response = await apiClient.post<AuthResponse>('/auth/login', payload);
-      return response.data;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: payload.email,
+        password: payload.password,
+      });
+      if (error) throw error;
+      return data;
     },
-    onSuccess: (data) => {
-      // Store token in localStorage
-      if (data.data?.token) {
-        localStorage.setItem('authToken', data.data.token);
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+    },
+  });
+};
+
+export const useSignup = () => {
+  return useMutation({
+    mutationFn: async (payload: SignupPayload) => {
+      const { data, error } = await supabase.auth.signUp({
+        email: payload.email,
+        password: payload.password,
+        options: {
+          data: { full_name: payload.fullName },
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+      return data;
     },
   });
 };
 
 export const useLogout = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post('/auth/logout');
-      return response.data;
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     },
     onSuccess: () => {
-      // Clear token from localStorage
-      localStorage.removeItem('authToken');
-      // Redirect to login
-      window.location.href = '/login';
+      queryClient.clear();
     },
   });
 };
 
 export const useCurrentUser = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  return { user, isLoading };
+};
+
+export const useUserProfile = () => {
   return useQuery({
-    queryKey: ['auth', 'currentUser'],
+    queryKey: ['auth', 'profile'],
     queryFn: async () => {
-      const response = await apiClient.get<{ success: boolean; data: CurrentUser }>(
-        '/auth/me'
-      );
-      return response.data.data;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
     },
-    enabled: !!localStorage.getItem('authToken'),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 };
 
-export const isAuthenticated = (): boolean => {
-  return !!localStorage.getItem('authToken');
+export const useUserRoles = () => {
+  return useQuery({
+    queryKey: ['auth', 'roles'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return data?.map((r) => r.role) || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 };

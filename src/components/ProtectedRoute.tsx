@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { data: user, isLoading } = useCurrentUser();
+  const { user, isLoading } = useCurrentUser();
 
   if (isLoading) {
     return (
@@ -22,8 +22,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!user) {
-    // Clear token if it exists but user is not authenticated
-    localStorage.removeItem('authToken');
     return <Navigate to="/login" replace />;
   }
 

@@ -3,38 +3,62 @@ import { useNavigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useLogin } from '@/hooks/api';
+import { useLogin, useSignup } from '@/hooks/api';
 import { useToast } from '@/hooks/use-toast';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('admin@asterng.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [isSignup, setIsSignup] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { mutate: login, isPending, error } = useLogin();
+  const { mutate: login, isPending: loginPending } = useLogin();
+  const { mutate: signup, isPending: signupPending } = useSignup();
+
+  const isPending = loginPending || signupPending;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    login(
-      { email, password },
-      {
-        onSuccess: () => {
-          toast({
-            title: 'Success',
-            description: 'Logged in successfully',
-          });
-          navigate('/');
-        },
-        onError: (err: any) => {
-          toast({
-            title: 'Login Failed',
-            description: err.message || 'Invalid email or password',
-            variant: 'destructive',
-          });
-        },
-      }
-    );
+    if (isSignup) {
+      signup(
+        { email, password, fullName },
+        {
+          onSuccess: () => {
+            toast({
+              title: 'Account Created',
+              description: 'Please check your email to verify your account before signing in.',
+            });
+            setIsSignup(false);
+          },
+          onError: (err: any) => {
+            toast({
+              title: 'Signup Failed',
+              description: err.message || 'Could not create account',
+              variant: 'destructive',
+            });
+          },
+        }
+      );
+    } else {
+      login(
+        { email, password },
+        {
+          onSuccess: () => {
+            toast({ title: 'Success', description: 'Logged in successfully' });
+            navigate('/');
+          },
+          onError: (err: any) => {
+            toast({
+              title: 'Login Failed',
+              description: err.message || 'Invalid email or password',
+              variant: 'destructive',
+            });
+          },
+        }
+      );
+    }
   };
 
   return (
@@ -52,19 +76,28 @@ const LoginPage = () => {
               ASTERNG Fleet Hub
             </h1>
             <p className="text-sm text-muted-foreground">
-              Sign in to your account to continue
+              {isSignup ? 'Create your account' : 'Sign in to your account to continue'}
             </p>
           </div>
 
-          {/* Error Alert */}
-          {error && (
-            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
-              {error.message || 'Failed to login. Please try again.'}
-            </div>
-          )}
-
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignup && (
+              <div className="space-y-2">
+                <label htmlFor="fullName" className="text-sm font-medium text-foreground">
+                  Full Name
+                </label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="Your full name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  disabled={isPending}
+                  required
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-foreground">
                 Email Address
@@ -72,14 +105,13 @@ const LoginPage = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@asterng.com"
+                placeholder="you@asterng.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isPending}
                 required
               />
             </div>
-
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium text-foreground">
                 Password
@@ -94,25 +126,19 @@ const LoginPage = () => {
                 required
               />
             </div>
-
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isPending}
-            >
-              {isPending ? 'Signing in...' : 'Sign In'}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? (isSignup ? 'Creating...' : 'Signing in...') : (isSignup ? 'Create Account' : 'Sign In')}
             </Button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="rounded-lg bg-muted/50 p-4 space-y-2">
-            <p className="text-xs font-semibold text-foreground uppercase tracking-wider">
-              Demo Credentials
-            </p>
-            <div className="text-xs space-y-1 text-muted-foreground">
-              <p><span className="font-medium">Email:</span> admin@asterng.com</p>
-              <p><span className="font-medium">Password:</span> password123</p>
-            </div>
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setIsSignup(!isSignup)}
+              className="text-sm text-primary hover:underline"
+            >
+              {isSignup ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+            </button>
           </div>
 
           {/* Footer */}

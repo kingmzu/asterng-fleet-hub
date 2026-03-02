@@ -1,35 +1,12 @@
 /**
- * Riders Hooks
- *
- * React Query hooks for rider operations
+ * Riders Hooks - Supabase implementation
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '@/api/client';
-import type { Rider } from '@/lib/mockData';
+import { supabase } from '@/integrations/supabase/client';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-interface RidersResponse {
-  success: boolean;
-  data: Rider[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    pages: number;
-  };
-}
-
-interface RiderResponse {
-  success: boolean;
-  data: Rider;
-}
-
-interface OutstandingResponse {
-  success: boolean;
-  data: {
-    riders: Rider[];
-  };
-}
+export type Rider = Tables<'riders'>;
 
 export const useRiders = (
   page = 1,
@@ -40,19 +17,32 @@ export const useRiders = (
   return useQuery({
     queryKey: ['riders', page, limit, status, search],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        status,
-        search,
-      });
+      let query = supabase.from('riders').select('*', { count: 'exact' });
 
-      const response = await apiClient.get<RidersResponse>(
-        `/riders?${params.toString()}`
-      );
-      return response.data;
+      if (status !== 'all') {
+        query = query.eq('status', status);
+      }
+      if (search) {
+        query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`);
+      }
+
+      const from = (page - 1) * limit;
+      query = query.range(from, from + limit - 1).order('created_at', { ascending: false });
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+
+      return {
+        data: data || [],
+        pagination: {
+          total: count || 0,
+          page,
+          limit,
+          pages: Math.ceil((count || 0) / limit),
+        },
+      };
     },
-    staleTime: 1 * 60 * 1000, // 1 minute
+    staleTime: 60 * 1000,
   });
 };
 
@@ -60,8 +50,13 @@ export const useRider = (id: string) => {
   return useQuery({
     queryKey: ['rider', id],
     queryFn: async () => {
-      const response = await apiClient.get<RiderResponse>(`/riders/${id}`);
-      return response.data.data;
+      const { data, error } = await supabase
+        .from('riders')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error) throw error;
+      return data;
     },
     enabled: !!id,
   });
@@ -69,59 +64,36 @@ export const useRider = (id: string) => {
 
 export const useCreateRider = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (data: Partial<Rider>) => {
-      const response = await apiClient.post<RiderResponse>('/riders', data);
-      return response.data.data;
+    mutationFn: async (rider: TablesInsert<'riders'>) => {
+      const { data, error } = await supabase.from('riders').insert(rider).select().single();
+      if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['riders'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['riders'] }),
   });
 };
 
 export const useUpdateRider = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Rider> }) => {
-      const response = await apiClient.put<RiderResponse>(`/riders/${id}`, data);
-      return response.data.data;
+    mutationFn: async ({ id, data: update }: { id: string; data: TablesUpdate<'riders'> }) => {
+      const { data, error } = await supabase.from('riders').update(update).eq('id', id).select().single();
+      if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['riders'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['riders'] }),
   });
 };
 
 export const useDeleteRider = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.delete(`/riders/${id}`);
+      const { error } = await supabase.from('riders').delete().eq('id', id);
+      if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['riders'] });
-    },
-  });
-};
-
-export const useUpdateRiderStatus = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const response = await apiClient.patch<RiderResponse>(
-        `/riders/${id}/status`,
-        { status }
-      );
-      return response.data.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['riders'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['riders'] }),
   });
 };
 
@@ -129,30 +101,14 @@ export const useOutstandingRiders = () => {
   return useQuery({
     queryKey: ['riders', 'outstanding'],
     queryFn: async () => {
-      const response = await apiClient.get<OutstandingResponse>(
-        '/riders/outstanding'
-      );
-      return response.data.data.riders;
+      const { data, error } = await supabase
+        .from('riders')
+        .select('*')
+        .gt('outstanding_balance', 0)
+        .order('outstanding_balance', { ascending: false });
+      if (error) throw error;
+      return data || [];
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
-  });
-};
-
-export const useSearchRiders = (searchTerm: string, status = 'all') => {
-  return useQuery({
-    queryKey: ['riders', 'search', searchTerm, status],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        q: searchTerm,
-        status,
-        limit: '10',
-      });
-
-      const response = await apiClient.get<{ success: boolean; riders: Rider[] }>(
-        `/riders/search?${params.toString()}`
-      );
-      return response.data.riders;
-    },
-    enabled: searchTerm.length >= 2,
+    staleTime: 2 * 60 * 1000,
   });
 };
