@@ -57,7 +57,7 @@ const MotorcyclesPage = () => {
               <div key={bike.id} className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-elevated)]">
                 <div className="mb-4 flex items-start justify-between">
                   <div>
-                    <h3 className="font-display text-base font-bold text-foreground">{bike.registration_number}</h3>
+                    <h3 className="font-display text-base font-bold text-foreground">{bike.plate_number}</h3>
                     <p className="text-sm text-muted-foreground">{bike.make} {bike.model} • {bike.year}</p>
                   </div>
                   <StatusBadge status={bike.status} />
@@ -66,14 +66,14 @@ const MotorcyclesPage = () => {
                 <div className="mb-4 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Assigned Rider</span>
-                    <span className={`font-medium ${bike.assigned_rider_id ? 'text-foreground' : 'text-muted-foreground'}`}>
-                      {bike.assigned_rider_id ? 'Assigned' : 'Unassigned'}
+                    <span className={`font-medium ${bike.rider_id ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      {bike.rider_id ? 'Assigned' : 'Unassigned'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Insurance Expiry</span>
-                    <span className={`font-medium ${new Date(bike.insurance_expiry) < new Date() ? 'text-destructive' : 'text-foreground'}`}>
-                      {bike.insurance_expiry}
+                    <span className={`font-medium ${new Date(bike.insurance_expiry_date) < new Date() ? 'text-destructive' : 'text-foreground'}`}>
+                      {bike.insurance_expiry_date}
                     </span>
                   </div>
                   <div className="flex justify-between">

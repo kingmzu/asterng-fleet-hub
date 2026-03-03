@@ -55,7 +55,7 @@ export const useComplianceOverview = () => {
   return useQuery({
     queryKey: ['dashboard', 'compliance'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('riders').select('compliance_score, kyc_status, police_clearance');
+      const { data, error } = await supabase.from('riders').select('compliance_score, kyc_status, is_with_police');
       if (error) throw error;
 
       const riders = data || [];

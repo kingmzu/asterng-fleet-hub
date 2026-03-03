@@ -14,94 +14,160 @@ export type Database = {
   }
   public: {
     Tables: {
+      compliance_records: {
+        Row: {
+          compliance_type: string
+          created_at: string
+          document_url: string | null
+          id: string
+          notes: string | null
+          rider_id: string
+          status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          compliance_type: string
+          created_at?: string
+          document_url?: string | null
+          id?: string
+          notes?: string | null
+          rider_id: string
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          compliance_type?: string
+          created_at?: string
+          document_url?: string | null
+          id?: string
+          notes?: string | null
+          rider_id?: string
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_records_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
-          bike_id: string | null
           category: string
           created_at: string
-          date: string
           description: string
+          expense_date: string
           id: string
+          motorcycle_id: string | null
+          recorded_by: string | null
+          rider_id: string | null
           rider_name: string | null
           updated_at: string
         }
         Insert: {
           amount: number
-          bike_id?: string | null
           category: string
           created_at?: string
-          date?: string
           description: string
+          expense_date?: string
           id?: string
+          motorcycle_id?: string | null
+          recorded_by?: string | null
+          rider_id?: string | null
           rider_name?: string | null
           updated_at?: string
         }
         Update: {
           amount?: number
-          bike_id?: string | null
           category?: string
           created_at?: string
-          date?: string
           description?: string
+          expense_date?: string
           id?: string
+          motorcycle_id?: string | null
+          recorded_by?: string | null
+          rider_id?: string | null
           rider_name?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "expenses_bike_id_fkey"
-            columns: ["bike_id"]
+            columns: ["motorcycle_id"]
             isOneToOne: false
             referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
             referencedColumns: ["id"]
           },
         ]
       }
       motorcycles: {
         Row: {
-          assigned_rider_id: string | null
+          chassis_number: string | null
           color: string
           created_at: string
+          engine_number: string | null
           id: string
-          insurance_expiry: string
+          insurance_expiry_date: string
           last_maintenance: string | null
           maintenance_cost: number
           make: string
           model: string
-          registration_number: string
+          plate_number: string
+          registration_expiry_date: string | null
+          rider_id: string | null
           status: string
           total_revenue: number
           updated_at: string
           year: number
         }
         Insert: {
-          assigned_rider_id?: string | null
+          chassis_number?: string | null
           color: string
           created_at?: string
+          engine_number?: string | null
           id?: string
-          insurance_expiry: string
+          insurance_expiry_date: string
           last_maintenance?: string | null
           maintenance_cost?: number
           make: string
           model: string
-          registration_number: string
+          plate_number: string
+          registration_expiry_date?: string | null
+          rider_id?: string | null
           status?: string
           total_revenue?: number
           updated_at?: string
           year: number
         }
         Update: {
-          assigned_rider_id?: string | null
+          chassis_number?: string | null
           color?: string
           created_at?: string
+          engine_number?: string | null
           id?: string
-          insurance_expiry?: string
+          insurance_expiry_date?: string
           last_maintenance?: string | null
           maintenance_cost?: number
           make?: string
           model?: string
-          registration_number?: string
+          plate_number?: string
+          registration_expiry_date?: string | null
+          rider_id?: string | null
           status?: string
           total_revenue?: number
           updated_at?: string
@@ -110,7 +176,7 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "motorcycles_assigned_rider_id_fkey"
-            columns: ["assigned_rider_id"]
+            columns: ["rider_id"]
             isOneToOne: false
             referencedRelation: "riders"
             referencedColumns: ["id"]
@@ -123,8 +189,9 @@ export type Database = {
           created_at: string
           email: string | null
           full_name: string
+          home_address: string | null
           id: string
-          phone: string | null
+          phone_number: string | null
           updated_at: string
           user_id: string
         }
@@ -133,8 +200,9 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name: string
+          home_address?: string | null
           id?: string
-          phone?: string | null
+          phone_number?: string | null
           updated_at?: string
           user_id: string
         }
@@ -143,8 +211,9 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string
+          home_address?: string | null
           id?: string
-          phone?: string | null
+          phone_number?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -155,9 +224,11 @@ export type Database = {
           amount: number
           bike_id: string
           created_at: string
-          date: string
           id: string
-          method: string
+          payment_method: string
+          recorded_by: string | null
+          reference_note: string | null
+          remittance_date: string
           rider_id: string
           status: string
           type: string
@@ -167,9 +238,11 @@ export type Database = {
           amount: number
           bike_id: string
           created_at?: string
-          date?: string
           id?: string
-          method?: string
+          payment_method?: string
+          recorded_by?: string | null
+          reference_note?: string | null
+          remittance_date?: string
           rider_id: string
           status?: string
           type?: string
@@ -179,9 +252,11 @@ export type Database = {
           amount?: number
           bike_id?: string
           created_at?: string
-          date?: string
           id?: string
-          method?: string
+          payment_method?: string
+          recorded_by?: string | null
+          reference_note?: string | null
+          remittance_date?: string
           rider_id?: string
           status?: string
           type?: string
@@ -210,16 +285,21 @@ export type Database = {
           compliance_score: number
           created_at: string
           email: string | null
+          full_name: string
+          home_address: string | null
           id: string
+          is_with_police: boolean
           join_date: string
           kyc_status: string
-          license_number: string
-          name: string
+          license_expiry_date: string | null
           national_id: string
           outstanding_balance: number
-          phone: string
-          photo_url: string | null
-          police_clearance: boolean
+          phone_number: string
+          police_case_reference: string | null
+          police_station_name: string | null
+          profile_image_url: string | null
+          rider_license_image_url: string | null
+          rider_license_number: string
           status: string
           test_approved: boolean
           total_remittance: number
@@ -231,16 +311,21 @@ export type Database = {
           compliance_score?: number
           created_at?: string
           email?: string | null
+          full_name: string
+          home_address?: string | null
           id?: string
+          is_with_police?: boolean
           join_date?: string
           kyc_status?: string
-          license_number: string
-          name: string
+          license_expiry_date?: string | null
           national_id: string
           outstanding_balance?: number
-          phone: string
-          photo_url?: string | null
-          police_clearance?: boolean
+          phone_number: string
+          police_case_reference?: string | null
+          police_station_name?: string | null
+          profile_image_url?: string | null
+          rider_license_image_url?: string | null
+          rider_license_number: string
           status?: string
           test_approved?: boolean
           total_remittance?: number
@@ -252,16 +337,21 @@ export type Database = {
           compliance_score?: number
           created_at?: string
           email?: string | null
+          full_name?: string
+          home_address?: string | null
           id?: string
+          is_with_police?: boolean
           join_date?: string
           kyc_status?: string
-          license_number?: string
-          name?: string
+          license_expiry_date?: string | null
           national_id?: string
           outstanding_balance?: number
-          phone?: string
-          photo_url?: string | null
-          police_clearance?: boolean
+          phone_number?: string
+          police_case_reference?: string | null
+          police_station_name?: string | null
+          profile_image_url?: string | null
+          rider_license_image_url?: string | null
+          rider_license_number?: string
           status?: string
           test_approved?: boolean
           total_remittance?: number

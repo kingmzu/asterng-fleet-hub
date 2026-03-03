@@ -101,14 +101,14 @@ const ExpensesPage = () => {
               : expenses.length > 0
               ? expenses.map((e) => (
                   <TableRow key={e.id}>
-                    <TableCell className="text-muted-foreground">{e.date}</TableCell>
+                    <TableCell className="text-muted-foreground">{e.expense_date}</TableCell>
                     <TableCell>
                       <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold capitalize ${categoryColors[e.category] || categoryColors.other}`}>
                         {e.category}
                       </span>
                     </TableCell>
                     <TableCell className="font-medium">{e.description}</TableCell>
-                    <TableCell className="hidden sm:table-cell text-muted-foreground">{e.bike_id || '—'}</TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">{e.motorcycle_id || '—'}</TableCell>
                     <TableCell className="text-right font-semibold">{formatNaira(Number(e.amount))}</TableCell>
                   </TableRow>
                 ))

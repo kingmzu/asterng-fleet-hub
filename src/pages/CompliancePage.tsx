@@ -67,17 +67,17 @@ const CompliancePage = () => {
             ? riders.map((rider) => (
                 <div key={rider.id} className="flex items-center gap-4 px-5 py-4">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 font-display text-xs font-bold text-primary">
-                    {rider.name.split(' ').map((n) => n[0]).join('')}
+                    {rider.full_name.split(' ').map((n) => n[0]).join('')}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{rider.name}</p>
+                    <p className="text-sm font-medium text-foreground">{rider.full_name}</p>
                     <div className="mt-1 flex items-center gap-2">
                       <StatusBadge status={rider.status} />
                       <span className={`text-[11px] rounded-full border px-2 py-0.5 ${rider.kyc_status === 'verified' ? 'border-success/30 bg-success/10 text-success' : 'border-warning/30 bg-warning/10 text-warning'}`}>
                         KYC: {rider.kyc_status}
                       </span>
-                      <span className={`text-[11px] rounded-full border px-2 py-0.5 ${rider.police_clearance ? 'border-success/30 bg-success/10 text-success' : 'border-destructive/30 bg-destructive/10 text-destructive'}`}>
-                        Police: {rider.police_clearance ? '✓' : '✗'}
+                      <span className={`text-[11px] rounded-full border px-2 py-0.5 ${rider.is_with_police ? 'border-destructive/30 bg-destructive/10 text-destructive' : 'border-success/30 bg-success/10 text-success'}`}>
+                        Police: {rider.is_with_police ? '⚠' : '✓'}
                       </span>
                     </div>
                   </div>

@@ -23,7 +23,7 @@ export const useRiders = (
         query = query.eq('status', status);
       }
       if (search) {
-        query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`);
+        query = query.or(`full_name.ilike.%${search}%,phone_number.ilike.%${search}%`);
       }
 
       const from = (page - 1) * limit;

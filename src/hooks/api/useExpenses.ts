@@ -22,7 +22,7 @@ export const useExpenses = (
       }
 
       const from = (page - 1) * limit;
-      query = query.range(from, from + limit - 1).order('date', { ascending: false });
+      query = query.range(from, from + limit - 1).order('expense_date', { ascending: false });
 
       const { data, error, count } = await query;
       if (error) throw error;
