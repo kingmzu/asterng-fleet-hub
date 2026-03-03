@@ -106,7 +106,7 @@ const Dashboard = () => {
                 <div key={p.id} className="flex items-center justify-between rounded-lg border border-border bg-background/50 px-3 py-2.5">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-foreground">{p.rider_name}</p>
-                    <p className="text-xs text-muted-foreground">{p.date}</p>
+                    <p className="text-xs text-muted-foreground">{p.remittance_date}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-foreground">{formatNaira(Number(p.amount))}</span>
@@ -131,8 +131,8 @@ const Dashboard = () => {
             {outstandingRiders.map((r) => (
               <div key={r.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
                 <div>
-                  <p className="text-sm font-medium text-foreground">{r.name}</p>
-                  <p className="text-xs text-muted-foreground">{r.phone}</p>
+                  <p className="text-sm font-medium text-foreground">{r.full_name}</p>
+                  <p className="text-xs text-muted-foreground">{r.phone_number}</p>
                 </div>
                 <span className="font-display text-sm font-bold text-destructive">
                   {formatNaira(Number(r.outstanding_balance))}

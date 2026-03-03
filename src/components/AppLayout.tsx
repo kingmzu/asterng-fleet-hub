@@ -97,13 +97,23 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         {/* User section */}
         <div className="border-t border-sidebar-border p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">
-              {initials}
-            </div>
-            <div className="flex-1 min-w-0">
+            <button
+              onClick={() => { setSidebarOpen(false); navigate('/profile'); }}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground hover:ring-2 hover:ring-sidebar-ring transition-all"
+            >
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+              ) : (
+                initials
+              )}
+            </button>
+            <button
+              onClick={() => { setSidebarOpen(false); navigate('/profile'); }}
+              className="flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
+            >
               <p className="truncate text-sm font-medium text-sidebar-accent-foreground">{displayName}</p>
               <p className="truncate text-xs text-sidebar-foreground/60">{user?.email}</p>
-            </div>
+            </button>
             <button
               onClick={() => logout(undefined, { onSuccess: () => navigate('/login') })}
               className="rounded-md p-1 text-sidebar-foreground/50 hover:text-sidebar-accent-foreground"

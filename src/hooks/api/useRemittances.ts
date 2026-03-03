@@ -17,17 +17,17 @@ export const useRemittances = (
     queryFn: async () => {
       let query = supabase
         .from('remittances')
-        .select('*, riders!inner(name)', { count: 'exact' });
+        .select('*, riders!inner(full_name)', { count: 'exact' });
 
       if (status !== 'all') {
         query = query.eq('status', status);
       }
       if (search) {
-        query = query.ilike('riders.name', `%${search}%`);
+        query = query.ilike('riders.full_name', `%${search}%`);
       }
 
       const from = (page - 1) * limit;
-      query = query.range(from, from + limit - 1).order('date', { ascending: false });
+      query = query.range(from, from + limit - 1).order('remittance_date', { ascending: false });
 
       const { data, error, count } = await query;
       if (error) throw error;
@@ -35,7 +35,7 @@ export const useRemittances = (
       return {
         data: (data || []).map((r: any) => ({
           ...r,
-          rider_name: r.riders?.name || 'Unknown',
+          rider_name: r.riders?.full_name || 'Unknown',
         })),
         pagination: {
           total: count || 0,

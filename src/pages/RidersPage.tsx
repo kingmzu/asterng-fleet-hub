@@ -58,11 +58,11 @@ const RidersPage = () => {
                 <div className="mb-4 flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-display text-sm font-bold text-primary">
-                      {rider.name.split(' ').map((n) => n[0]).join('')}
+                     {rider.full_name.split(' ').map((n) => n[0]).join('')}
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-foreground">{rider.name}</h3>
-                      <p className="text-xs text-muted-foreground">{rider.phone}</p>
+                      <h3 className="text-sm font-semibold text-foreground">{rider.full_name}</h3>
+                      <p className="text-xs text-muted-foreground">{rider.phone_number}</p>
                     </div>
                   </div>
                   <StatusBadge status={rider.status} />
@@ -85,8 +85,8 @@ const RidersPage = () => {
                   <span className={`rounded-full border px-2 py-0.5 ${rider.kyc_status === 'verified' ? 'border-success/30 bg-success/10 text-success' : 'border-warning/30 bg-warning/10 text-warning'}`}>
                     KYC: {rider.kyc_status}
                   </span>
-                  <span className={`rounded-full border px-2 py-0.5 ${rider.police_clearance ? 'border-success/30 bg-success/10 text-success' : 'border-destructive/30 bg-destructive/10 text-destructive'}`}>
-                    Police: {rider.police_clearance ? 'Clear' : 'Pending'}
+                  <span className={`rounded-full border px-2 py-0.5 ${rider.is_with_police ? 'border-destructive/30 bg-destructive/10 text-destructive' : 'border-success/30 bg-success/10 text-success'}`}>
+                    Police: {rider.is_with_police ? 'With Police' : 'Clear'}
                   </span>
                   {rider.assigned_bike_id && (
                     <span className="rounded-full border border-info/30 bg-info/10 px-2 py-0.5 text-info">

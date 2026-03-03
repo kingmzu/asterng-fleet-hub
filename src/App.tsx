@@ -12,6 +12,7 @@ import MotorcyclesPage from "@/pages/MotorcyclesPage";
 import RemittancesPage from "@/pages/RemittancesPage";
 import ExpensesPage from "@/pages/ExpensesPage";
 import CompliancePage from "@/pages/CompliancePage";
+import ProfilePage from "@/pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -83,6 +84,16 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <CompliancePage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ProfilePage />
                 </AppLayout>
               </ProtectedRoute>
             }

@@ -23,7 +23,7 @@ export const useMotorcycles = (
         query = query.eq('status', status);
       }
       if (search) {
-        query = query.or(`registration_number.ilike.%${search}%,make.ilike.%${search}%,model.ilike.%${search}%`);
+        query = query.or(`plate_number.ilike.%${search}%,make.ilike.%${search}%,model.ilike.%${search}%`);
       }
 
       const from = (page - 1) * limit;
