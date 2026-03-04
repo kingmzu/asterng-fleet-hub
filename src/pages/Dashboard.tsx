@@ -5,6 +5,7 @@ import {
   TrendingDown,
   Wallet,
   AlertTriangle,
+  Clock,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import StatCard from '@/components/StatCard';
@@ -16,6 +17,7 @@ import {
   useRevenueTrends,
   useRemittances,
   useOutstandingRiders,
+  useExpiryAlerts,
 } from '@/hooks/api';
 import { formatNaira } from '@/lib/mockData';
 
@@ -26,6 +28,7 @@ const Dashboard = () => {
   const { data: trends, isLoading: trendsLoading } = useRevenueTrends(6);
   const { data: remittancesData, isLoading: remittancesLoading } = useRemittances(1, 5, 'all', '');
   const { data: outstandingRiders, isLoading: outstandingLoading } = useOutstandingRiders();
+  const { data: expiryAlerts, isLoading: expiryLoading } = useExpiryAlerts();
 
   if (statsError) {
     toast({
@@ -120,6 +123,31 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Expiry Alerts */}
+      {expiryLoading ? (
+        <Skeleton className="h-40 rounded-lg" />
+      ) : expiryAlerts && expiryAlerts.length > 0 ? (
+        <div className="rounded-xl border border-warning/20 bg-warning/5 p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <Clock className="h-4 w-4 text-warning" />
+            <h3 className="font-display text-sm font-semibold text-foreground">Upcoming Expiry Alerts</h3>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {expiryAlerts.slice(0, 9).map((alert) => (
+              <div key={`${alert.type}-${alert.id}`} className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{alert.label}</p>
+                  <p className="text-xs capitalize text-muted-foreground">{alert.type} expiry</p>
+                </div>
+                <span className={`font-display text-xs font-bold ${alert.expired ? 'text-destructive' : 'text-warning'}`}>
+                  {alert.expired ? 'EXPIRED' : alert.date}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {/* Outstanding balances */}
       {outstandingLoading ? (

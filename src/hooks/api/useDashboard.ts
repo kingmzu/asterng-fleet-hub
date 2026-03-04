@@ -71,3 +71,55 @@ export const useComplianceOverview = () => {
     staleTime: 2 * 60 * 1000,
   });
 };
+
+export const useExpiryAlerts = () => {
+  return useQuery({
+    queryKey: ['dashboard', 'expiry-alerts'],
+    queryFn: async () => {
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      const cutoff = thirtyDaysFromNow.toISOString().split('T')[0];
+
+      const [ridersRes, bikesRes] = await Promise.all([
+        supabase.from('riders').select('id, full_name, license_expiry_date').not('license_expiry_date', 'is', null).lte('license_expiry_date', cutoff),
+        supabase.from('motorcycles').select('id, plate_number, insurance_expiry_date, registration_expiry_date').lte('insurance_expiry_date', cutoff),
+      ]);
+
+      if (ridersRes.error) throw ridersRes.error;
+      if (bikesRes.error) throw bikesRes.error;
+
+      const today = new Date().toISOString().split('T')[0];
+
+      const licenseAlerts = (ridersRes.data || []).map((r) => ({
+        id: r.id,
+        type: 'license' as const,
+        label: r.full_name,
+        date: r.license_expiry_date!,
+        expired: r.license_expiry_date! <= today,
+      }));
+
+      const insuranceAlerts = (bikesRes.data || []).map((b) => ({
+        id: b.id,
+        type: 'insurance' as const,
+        label: b.plate_number,
+        date: b.insurance_expiry_date,
+        expired: b.insurance_expiry_date <= today,
+      }));
+
+      const registrationAlerts = (bikesRes.data || [])
+        .filter((b) => b.registration_expiry_date && b.registration_expiry_date <= cutoff)
+        .map((b) => ({
+          id: b.id,
+          type: 'registration' as const,
+          label: b.plate_number,
+          date: b.registration_expiry_date!,
+          expired: b.registration_expiry_date! <= today,
+        }));
+
+      return [...licenseAlerts, ...insuranceAlerts, ...registrationAlerts].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};

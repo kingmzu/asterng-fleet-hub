@@ -102,8 +102,8 @@ const RemittancesPage = () => {
                     <TableCell className="font-medium">{r.rider_name}</TableCell>
                     <TableCell className="font-semibold">{formatNaira(Number(r.amount))}</TableCell>
                     <TableCell className="hidden md:table-cell capitalize text-muted-foreground">{r.type}</TableCell>
-                    <TableCell className="hidden md:table-cell capitalize text-muted-foreground">{r.method}</TableCell>
-                    <TableCell className="text-muted-foreground">{r.date}</TableCell>
+                    <TableCell className="hidden md:table-cell capitalize text-muted-foreground">{r.payment_method}</TableCell>
+                    <TableCell className="text-muted-foreground">{r.remittance_date}</TableCell>
                     <TableCell><StatusBadge status={r.status} /></TableCell>
                   </TableRow>
                 ))
