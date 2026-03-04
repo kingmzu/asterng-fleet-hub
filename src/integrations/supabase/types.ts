@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           document_url: string | null
           id: string
+          motorcycle_id: string | null
           notes: string | null
           rider_id: string
           status: string
@@ -31,6 +32,7 @@ export type Database = {
           created_at?: string
           document_url?: string | null
           id?: string
+          motorcycle_id?: string | null
           notes?: string | null
           rider_id: string
           status?: string
@@ -42,6 +44,7 @@ export type Database = {
           created_at?: string
           document_url?: string | null
           id?: string
+          motorcycle_id?: string | null
           notes?: string | null
           rider_id?: string
           status?: string
@@ -49,6 +52,13 @@ export type Database = {
           verified_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "compliance_records_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "compliance_records_rider_id_fkey"
             columns: ["rider_id"]
