@@ -53,7 +53,13 @@ const RemittanceFormDialog = ({ open, onOpenChange }: Props) => {
   const onSubmit = async (values: FormValues) => {
     try {
       await create.mutateAsync({
-        ...values,
+        rider_id: values.rider_id,
+        bike_id: values.bike_id,
+        amount: values.amount,
+        remittance_date: values.remittance_date,
+        type: values.type,
+        payment_method: values.payment_method,
+        status: values.status,
         reference_note: values.reference_note || null,
       });
       toast({ title: 'Remittance logged successfully' });

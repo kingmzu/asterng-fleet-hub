@@ -67,7 +67,13 @@ const MotorcycleFormDialog = ({ open, onOpenChange, motorcycle }: Props) => {
   const onSubmit = async (values: FormValues) => {
     try {
       const payload = {
-        ...values,
+        plate_number: values.plate_number,
+        make: values.make,
+        model: values.model,
+        year: values.year,
+        color: values.color,
+        insurance_expiry_date: values.insurance_expiry_date,
+        status: values.status,
         engine_number: values.engine_number || null,
         chassis_number: values.chassis_number || null,
         registration_expiry_date: values.registration_expiry_date || null,

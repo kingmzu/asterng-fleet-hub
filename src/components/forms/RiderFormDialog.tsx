@@ -71,7 +71,12 @@ const RiderFormDialog = ({ open, onOpenChange, rider }: Props) => {
   const onSubmit = async (values: RiderFormValues) => {
     try {
       const payload = {
-        ...values,
+        full_name: values.full_name,
+        phone_number: values.phone_number,
+        national_id: values.national_id,
+        rider_license_number: values.rider_license_number,
+        status: values.status,
+        is_with_police: values.is_with_police,
         email: values.email || null,
         home_address: values.home_address || null,
         license_expiry_date: values.license_expiry_date || null,

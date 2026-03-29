@@ -51,7 +51,10 @@ const ExpenseFormDialog = ({ open, onOpenChange }: Props) => {
   const onSubmit = async (values: FormValues) => {
     try {
       await create.mutateAsync({
-        ...values,
+        category: values.category,
+        amount: values.amount,
+        description: values.description,
+        expense_date: values.expense_date,
         motorcycle_id: values.motorcycle_id || null,
         rider_id: values.rider_id || null,
       });
