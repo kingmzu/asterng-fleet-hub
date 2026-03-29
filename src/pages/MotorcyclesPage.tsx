@@ -1,21 +1,27 @@
 import { useState } from 'react';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import StatusBadge from '@/components/StatusBadge';
 import { useMotorcycles } from '@/hooks/api';
 import { formatNaira } from '@/lib/mockData';
+import MotorcycleFormDialog from '@/components/forms/MotorcycleFormDialog';
+import type { Tables } from '@/integrations/supabase/types';
 
 const MotorcyclesPage = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingBike, setEditingBike] = useState<Tables<'motorcycles'> | null>(null);
 
   const { data, isLoading, error } = useMotorcycles(page, 12, filterStatus, search);
-
   const motorcycles = data?.data || [];
   const totalPages = data?.pagination.pages || 0;
+
+  const openAdd = () => { setEditingBike(null); setFormOpen(true); };
+  const openEdit = (bike: Tables<'motorcycles'>) => { setEditingBike(bike); setFormOpen(true); };
 
   return (
     <div className="space-y-5">
@@ -26,7 +32,7 @@ const MotorcyclesPage = () => {
             {isLoading ? 'Loading...' : `${data?.pagination.total || 0} registered motorcycles`}
           </p>
         </div>
-        <Button className="gap-2"><Plus className="h-4 w-4" /> Register Bike</Button>
+        <Button className="gap-2" onClick={openAdd}><Plus className="h-4 w-4" /> Register Bike</Button>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -54,13 +60,18 @@ const MotorcyclesPage = () => {
           ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-64 rounded-xl" />)
           : motorcycles.length > 0
           ? motorcycles.map((bike) => (
-              <div key={bike.id} className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-elevated)]">
+              <div key={bike.id} className="group rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-elevated)]">
                 <div className="mb-4 flex items-start justify-between">
                   <div>
                     <h3 className="font-display text-base font-bold text-foreground">{bike.plate_number}</h3>
                     <p className="text-sm text-muted-foreground">{bike.make} {bike.model} • {bike.year}</p>
                   </div>
-                  <StatusBadge status={bike.status} />
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => openEdit(bike)} className="rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <StatusBadge status={bike.status} />
+                  </div>
                 </div>
 
                 <div className="mb-4 space-y-2 text-sm">
@@ -110,6 +121,8 @@ const MotorcyclesPage = () => {
           ))}
         </div>
       )}
+
+      <MotorcycleFormDialog open={formOpen} onOpenChange={setFormOpen} motorcycle={editingBike} />
     </div>
   );
 };

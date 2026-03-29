@@ -7,11 +7,13 @@ import StatusBadge from '@/components/StatusBadge';
 import { useRemittances, useRemittanceStats } from '@/hooks/api';
 import { formatNaira } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import RemittanceFormDialog from '@/components/forms/RemittanceFormDialog';
 
 const RemittancesPage = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [formOpen, setFormOpen] = useState(false);
 
   const { data, isLoading, error } = useRemittances(page, 20, filterStatus, search);
   const { data: stats, isLoading: statsLoading } = useRemittanceStats();
@@ -28,11 +30,10 @@ const RemittancesPage = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2" disabled={isLoading}><Download className="h-4 w-4" /> Export</Button>
-          <Button className="gap-2"><Plus className="h-4 w-4" /> Log Payment</Button>
+          <Button className="gap-2" onClick={() => setFormOpen(true)}><Plus className="h-4 w-4" /> Log Payment</Button>
         </div>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total Collected</p>
@@ -125,6 +126,8 @@ const RemittancesPage = () => {
           ))}
         </div>
       )}
+
+      <RemittanceFormDialog open={formOpen} onOpenChange={setFormOpen} />
     </div>
   );
 };
