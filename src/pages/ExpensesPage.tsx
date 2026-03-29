@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useExpenses, useExpenseBreakdown } from '@/hooks/api';
 import { formatNaira } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import ExpenseFormDialog from '@/components/forms/ExpenseFormDialog';
 
 const categoryColors: Record<string, string> = {
   maintenance: 'bg-info/15 text-info',
@@ -19,6 +20,7 @@ const categoryColors: Record<string, string> = {
 const ExpensesPage = () => {
   const [page, setPage] = useState(1);
   const [filterCat, setFilterCat] = useState<string>('all');
+  const [formOpen, setFormOpen] = useState(false);
 
   const categories = ['all', 'maintenance', 'mechanic', 'fuel', 'insurance', 'pos', 'capital', 'other'];
   const { data, isLoading, error } = useExpenses(page, 20, filterCat, '');
@@ -37,7 +39,7 @@ const ExpensesPage = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2" disabled={isLoading}><Download className="h-4 w-4" /> Export</Button>
-          <Button className="gap-2"><Plus className="h-4 w-4" /> Add Expense</Button>
+          <Button className="gap-2" onClick={() => setFormOpen(true)}><Plus className="h-4 w-4" /> Add Expense</Button>
         </div>
       </div>
 
@@ -130,6 +132,8 @@ const ExpensesPage = () => {
           ))}
         </div>
       )}
+
+      <ExpenseFormDialog open={formOpen} onOpenChange={setFormOpen} />
     </div>
   );
 };
