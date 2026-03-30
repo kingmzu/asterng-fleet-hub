@@ -53,13 +53,23 @@ export const useCreateRemittance = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: TablesInsert<'remittances'>) => {
-      const { data: result, error } = await supabase.from('remittances').insert(data).select().single();
+      // Use the overdue-handling RPC function
+      const { data: result, error } = await supabase.rpc('process_remittance_with_overdue', {
+        p_rider_id: data.rider_id,
+        p_bike_id: data.bike_id,
+        p_amount: data.amount,
+        p_remittance_date: data.remittance_date || new Date().toISOString().split('T')[0],
+        p_type: data.type || 'daily',
+        p_payment_method: data.payment_method || 'cash',
+        p_reference_note: data.reference_note || null,
+      });
       if (error) throw error;
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['remittances'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['riders'] });
     },
   });
 };
