@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { useCreateRemittance, useRiders, useMotorcycles } from '@/hooks/api';
+import { useCreateRemittance, useUpdateRemittance, useDeleteRemittance, useRiders, useMotorcycles, useUserRoles } from '@/hooks/api';
+import type { Tables } from '@/integrations/supabase/types';
 
 const schema = z.object({
   rider_id: z.string().min(1, 'Select a rider'),
@@ -23,14 +24,24 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+type Remittance = Tables<'remittances'>;
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  remittance?: Remittance | null;
 }
 
-const RemittanceFormDialog = ({ open, onOpenChange }: Props) => {
+const RemittanceFormDialog = ({ open, onOpenChange, remittance }: Props) => {
+  const isEdit = !!remittance;
   const create = useCreateRemittance();
+  const update = useUpdateRemittance();
+  const remove = useDeleteRemittance();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const { data: roles } = useUserRoles();
+  const isAdmin = roles?.includes('admin');
+
   const { data: ridersData } = useRiders(1, 100, 'all', '');
   const { data: bikesData } = useMotorcycles(1, 100, 'all', '');
 
@@ -47,12 +58,26 @@ const RemittanceFormDialog = ({ open, onOpenChange }: Props) => {
   });
 
   useEffect(() => {
-    if (open) form.reset();
-  }, [open]);
+    if (remittance) {
+      form.reset({
+        rider_id: remittance.rider_id,
+        bike_id: remittance.bike_id,
+        amount: remittance.amount,
+        remittance_date: remittance.remittance_date,
+        type: remittance.type as 'daily' | 'weekly',
+        payment_method: remittance.payment_method as 'cash' | 'transfer' | 'pos',
+        status: remittance.status as 'paid' | 'partial' | 'overdue',
+        reference_note: remittance.reference_note || '',
+      });
+    } else if (open) {
+      form.reset();
+    }
+    setShowDeleteConfirm(false);
+  }, [remittance, open]);
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await create.mutateAsync({
+      const payload = {
         rider_id: values.rider_id,
         bike_id: values.bike_id,
         amount: values.amount,
@@ -61,19 +86,42 @@ const RemittanceFormDialog = ({ open, onOpenChange }: Props) => {
         payment_method: values.payment_method,
         status: values.status,
         reference_note: values.reference_note || null,
-      });
-      toast({ title: 'Remittance logged successfully' });
+      };
+      if (isEdit) {
+        if (!isAdmin) {
+          toast({ title: 'Access Denied', description: 'Only admins can edit remittances', variant: 'destructive' });
+          return;
+        }
+        await update.mutateAsync({ id: remittance.id, data: payload });
+        toast({ title: 'Remittance updated' });
+      } else {
+        await create.mutateAsync(payload);
+        toast({ title: 'Remittance logged successfully' });
+      }
       onOpenChange(false);
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
     }
   };
 
+  const handleDelete = async () => {
+    if (!remittance || !isAdmin) return;
+    try {
+      await remove.mutateAsync(remittance.id);
+      toast({ title: 'Remittance deleted' });
+      onOpenChange(false);
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    }
+  };
+
+  const isPending = create.isPending || update.isPending || remove.isPending;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Log Remittance Payment</DialogTitle>
+          <DialogTitle>{isEdit ? 'Edit Remittance' : 'Log Remittance Payment'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -144,9 +192,20 @@ const RemittanceFormDialog = ({ open, onOpenChange }: Props) => {
               <FormItem><FormLabel>Reference Note</FormLabel><FormControl><Textarea rows={2} {...field} /></FormControl><FormMessage /></FormItem>
             )} />
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="submit" disabled={create.isPending}>{create.isPending ? 'Saving...' : 'Log Payment'}</Button>
+            <div className="flex gap-2 pt-2">
+              {isEdit && isAdmin && !showDeleteConfirm && (
+                <Button type="button" variant="destructive" onClick={() => setShowDeleteConfirm(true)} disabled={isPending}>Delete</Button>
+              )}
+              {showDeleteConfirm && (
+                <div className="flex gap-2">
+                  <Button type="button" variant="destructive" onClick={handleDelete} disabled={isPending}>Confirm Delete</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+                </div>
+              )}
+              <div className="ml-auto flex gap-2">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                <Button type="submit" disabled={isPending}>{isPending ? 'Saving...' : isEdit ? 'Update' : 'Log Payment'}</Button>
+              </div>
             </div>
           </form>
         </Form>

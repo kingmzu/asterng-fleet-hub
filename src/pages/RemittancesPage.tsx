@@ -1,25 +1,41 @@
 import { useState } from 'react';
-import { Search, Plus, Download } from 'lucide-react';
+import { Search, Plus, Download, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import StatusBadge from '@/components/StatusBadge';
-import { useRemittances, useRemittanceStats } from '@/hooks/api';
+import { useRemittances, useRemittanceStats, useUserRoles } from '@/hooks/api';
 import { formatNaira } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import RemittanceFormDialog from '@/components/forms/RemittanceFormDialog';
+import type { Tables } from '@/integrations/supabase/types';
 
 const RemittancesPage = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [formOpen, setFormOpen] = useState(false);
+  const [editRemittance, setEditRemittance] = useState<Tables<'remittances'> | null>(null);
+
+  const { data: roles } = useUserRoles();
+  const isAdmin = roles?.includes('admin');
 
   const { data, isLoading, error } = useRemittances(page, 20, filterStatus, search);
   const { data: stats, isLoading: statsLoading } = useRemittanceStats();
 
   const remittances = data?.data || [];
   const totalPages = data?.pagination.pages || 0;
+
+  const openEdit = (r: Tables<'remittances'>) => {
+    if (!isAdmin) return;
+    setEditRemittance(r);
+    setFormOpen(true);
+  };
+
+  const openCreate = () => {
+    setEditRemittance(null);
+    setFormOpen(true);
+  };
 
   return (
     <div className="space-y-5">
@@ -30,7 +46,7 @@ const RemittancesPage = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2" disabled={isLoading}><Download className="h-4 w-4" /> Export</Button>
-          <Button className="gap-2" onClick={() => setFormOpen(true)}><Plus className="h-4 w-4" /> Log Payment</Button>
+          <Button className="gap-2" onClick={openCreate}><Plus className="h-4 w-4" /> Log Payment</Button>
         </div>
       </div>
 
@@ -83,6 +99,7 @@ const RemittancesPage = () => {
               <TableHead className="hidden md:table-cell">Method</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
+              {isAdmin && <TableHead className="w-10"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -106,11 +123,18 @@ const RemittancesPage = () => {
                     <TableCell className="hidden md:table-cell capitalize text-muted-foreground">{r.payment_method}</TableCell>
                     <TableCell className="text-muted-foreground">{r.remittance_date}</TableCell>
                     <TableCell><StatusBadge status={r.status} /></TableCell>
+                    {isAdmin && (
+                      <TableCell>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(r)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No remittances found</TableCell>
+                  <TableCell colSpan={isAdmin ? 7 : 6} className="text-center text-muted-foreground py-8">No remittances found</TableCell>
                 </TableRow>
               )}
           </TableBody>
@@ -127,7 +151,7 @@ const RemittancesPage = () => {
         </div>
       )}
 
-      <RemittanceFormDialog open={formOpen} onOpenChange={setFormOpen} />
+      <RemittanceFormDialog open={formOpen} onOpenChange={setFormOpen} remittance={editRemittance} />
     </div>
   );
 };

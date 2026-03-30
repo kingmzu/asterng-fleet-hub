@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Plus, Download } from 'lucide-react';
+import { Plus, Download, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useExpenses, useExpenseBreakdown } from '@/hooks/api';
 import { formatNaira } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import ExpenseFormDialog from '@/components/forms/ExpenseFormDialog';
+import type { Tables } from '@/integrations/supabase/types';
 
 const categoryColors: Record<string, string> = {
   maintenance: 'bg-info/15 text-info',
@@ -21,6 +22,7 @@ const ExpensesPage = () => {
   const [page, setPage] = useState(1);
   const [filterCat, setFilterCat] = useState<string>('all');
   const [formOpen, setFormOpen] = useState(false);
+  const [editExpense, setEditExpense] = useState<Tables<'expenses'> | null>(null);
 
   const categories = ['all', 'maintenance', 'mechanic', 'fuel', 'insurance', 'pos', 'capital', 'other'];
   const { data, isLoading, error } = useExpenses(page, 20, filterCat, '');
@@ -29,6 +31,16 @@ const ExpensesPage = () => {
   const expenses = data?.data || [];
   const totalPages = data?.pagination.pages || 0;
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
+
+  const openEdit = (expense: Tables<'expenses'>) => {
+    setEditExpense(expense);
+    setFormOpen(true);
+  };
+
+  const openCreate = () => {
+    setEditExpense(null);
+    setFormOpen(true);
+  };
 
   return (
     <div className="space-y-5">
@@ -39,7 +51,7 @@ const ExpensesPage = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2" disabled={isLoading}><Download className="h-4 w-4" /> Export</Button>
-          <Button className="gap-2" onClick={() => setFormOpen(true)}><Plus className="h-4 w-4" /> Add Expense</Button>
+          <Button className="gap-2" onClick={openCreate}><Plus className="h-4 w-4" /> Add Expense</Button>
         </div>
       </div>
 
@@ -87,6 +99,7 @@ const ExpensesPage = () => {
               <TableHead>Description</TableHead>
               <TableHead className="hidden sm:table-cell">Bike</TableHead>
               <TableHead className="text-right">Amount</TableHead>
+              <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -98,6 +111,7 @@ const ExpensesPage = () => {
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-16" /></TableCell>
                     <TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-5" /></TableCell>
                   </TableRow>
                 ))
               : expenses.length > 0
@@ -112,11 +126,16 @@ const ExpensesPage = () => {
                     <TableCell className="font-medium">{e.description}</TableCell>
                     <TableCell className="hidden sm:table-cell text-muted-foreground">{e.motorcycle_id || '—'}</TableCell>
                     <TableCell className="text-right font-semibold">{formatNaira(Number(e.amount))}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">No expenses found</TableCell>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No expenses found</TableCell>
                 </TableRow>
               )}
           </TableBody>
@@ -133,7 +152,7 @@ const ExpensesPage = () => {
         </div>
       )}
 
-      <ExpenseFormDialog open={formOpen} onOpenChange={setFormOpen} />
+      <ExpenseFormDialog open={formOpen} onOpenChange={setFormOpen} expense={editExpense} />
     </div>
   );
 };

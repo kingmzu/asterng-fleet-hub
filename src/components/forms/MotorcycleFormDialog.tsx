@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { useCreateMotorcycle, useUpdateMotorcycle, useDeleteMotorcycle } from '@/hooks/api';
+import { useCreateMotorcycle, useUpdateMotorcycle, useDeleteMotorcycle, useRiders } from '@/hooks/api';
 import type { Tables } from '@/integrations/supabase/types';
 
 const schema = z.object({
@@ -22,6 +22,7 @@ const schema = z.object({
   insurance_expiry_date: z.string().min(1, 'Insurance expiry is required'),
   registration_expiry_date: z.string().optional().or(z.literal('')),
   status: z.enum(['active', 'maintenance', 'suspended']),
+  rider_id: z.string().optional().or(z.literal('')),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -40,12 +41,15 @@ const MotorcycleFormDialog = ({ open, onOpenChange, motorcycle }: Props) => {
   const remove = useDeleteMotorcycle();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const { data: ridersData } = useRiders(1, 100, 'all', '');
+  const riders = ridersData?.data || [];
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       plate_number: '', make: '', model: '', year: new Date().getFullYear(), color: '',
       engine_number: '', chassis_number: '', insurance_expiry_date: '',
-      registration_expiry_date: '', status: 'active',
+      registration_expiry_date: '', status: 'active', rider_id: '',
     },
   });
 
@@ -58,10 +62,12 @@ const MotorcycleFormDialog = ({ open, onOpenChange, motorcycle }: Props) => {
         insurance_expiry_date: motorcycle.insurance_expiry_date,
         registration_expiry_date: motorcycle.registration_expiry_date || '',
         status: motorcycle.status as 'active' | 'maintenance' | 'suspended',
+        rider_id: motorcycle.rider_id || '',
       });
     } else {
       form.reset();
     }
+    setShowDeleteConfirm(false);
   }, [motorcycle, open]);
 
   const onSubmit = async (values: FormValues) => {
@@ -77,6 +83,7 @@ const MotorcycleFormDialog = ({ open, onOpenChange, motorcycle }: Props) => {
         engine_number: values.engine_number || null,
         chassis_number: values.chassis_number || null,
         registration_expiry_date: values.registration_expiry_date || null,
+        rider_id: values.rider_id || null,
       };
       if (isEdit) {
         await update.mutateAsync({ id: motorcycle.id, data: payload });
@@ -136,6 +143,17 @@ const MotorcycleFormDialog = ({ open, onOpenChange, motorcycle }: Props) => {
                       <SelectItem value="active">Active</SelectItem>
                       <SelectItem value="maintenance">Maintenance</SelectItem>
                       <SelectItem value="suspended">Suspended</SelectItem>
+                    </SelectContent>
+                  </Select><FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="rider_id" render={({ field }) => (
+                <FormItem><FormLabel>Assign Rider</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Unassigned</SelectItem>
+                      {riders.map((r) => <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>)}
                     </SelectContent>
                   </Select><FormMessage />
                 </FormItem>
