@@ -410,6 +410,18 @@ export type Database = {
       }
       is_admin_or_manager: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      process_remittance_with_overdue: {
+        Args: {
+          p_amount: number
+          p_bike_id: string
+          p_payment_method: string
+          p_reference_note: string
+          p_remittance_date: string
+          p_rider_id: string
+          p_type: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "operations_manager" | "accountant" | "rider"
