@@ -4,7 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { TablesInsert } from '@/integrations/supabase/types';
+import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 export const useRemittances = (
   page = 1,
@@ -56,6 +56,35 @@ export const useCreateRemittance = () => {
       const { data: result, error } = await supabase.from('remittances').insert(data).select().single();
       if (error) throw error;
       return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['remittances'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+};
+
+export const useUpdateRemittance = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data: update }: { id: string; data: TablesUpdate<'remittances'> }) => {
+      const { data, error } = await supabase.from('remittances').update(update).eq('id', id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['remittances'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+};
+
+export const useDeleteRemittance = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('remittances').delete().eq('id', id);
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['remittances'] });
