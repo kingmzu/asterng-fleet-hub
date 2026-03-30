@@ -4,7 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { TablesInsert } from '@/integrations/supabase/types';
+import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 export const useRemittances = (
   page = 1,
@@ -53,9 +53,48 @@ export const useCreateRemittance = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: TablesInsert<'remittances'>) => {
-      const { data: result, error } = await supabase.from('remittances').insert(data).select().single();
+      // Use the overdue-handling RPC function
+      const { data: result, error } = await supabase.rpc('process_remittance_with_overdue', {
+        p_rider_id: data.rider_id,
+        p_bike_id: data.bike_id,
+        p_amount: data.amount,
+        p_remittance_date: data.remittance_date || new Date().toISOString().split('T')[0],
+        p_type: data.type || 'daily',
+        p_payment_method: data.payment_method || 'cash',
+        p_reference_note: data.reference_note || null,
+      });
       if (error) throw error;
       return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['remittances'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['riders'] });
+    },
+  });
+};
+
+export const useUpdateRemittance = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data: update }: { id: string; data: TablesUpdate<'remittances'> }) => {
+      const { data, error } = await supabase.from('remittances').update(update).eq('id', id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['remittances'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+};
+
+export const useDeleteRemittance = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('remittances').delete().eq('id', id);
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['remittances'] });
