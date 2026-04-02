@@ -3,11 +3,13 @@ import { Camera, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useUserProfile } from '@/hooks/api';
-import { useUpdateProfile, useUploadAvatar } from '@/hooks/api/useProfile';
+import { useUpdateProfile, useUploadAvatar, useAvatarUrl } from '@/hooks/api/useProfile';
 import { useToast } from '@/hooks/use-toast';
 
 const ProfilePage = () => {
   const { data: profile, isLoading } = useUserProfile();
+  const avatarPath = profile?.avatar_url;
+  const { data: avatarSignedUrl } = useAvatarUrl(avatarPath);
   const { mutateAsync: updateProfile, isPending: saving } = useUpdateProfile();
   const { mutateAsync: uploadAvatar, isPending: uploading } = useUploadAvatar();
   const { toast } = useToast();
@@ -30,8 +32,8 @@ const ProfilePage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const url = await uploadAvatar(file);
-      await updateProfile({ avatar_url: url });
+      const path = await uploadAvatar(file);
+      await updateProfile({ avatar_url: path });
       toast({ title: 'Avatar updated' });
     } catch (err: any) {
       toast({ title: 'Upload failed', description: err.message, variant: 'destructive' });
@@ -73,9 +75,9 @@ const ProfilePage = () => {
       {/* Avatar */}
       <div className="flex items-center gap-5">
         <div className="relative">
-          {profile?.avatar_url ? (
+          {avatarSignedUrl ? (
             <img
-              src={profile.avatar_url}
+              src={avatarSignedUrl}
               alt="Profile"
               className="h-20 w-20 rounded-full object-cover border-2 border-border"
             />
