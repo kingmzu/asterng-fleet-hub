@@ -8,6 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 
 const ProfilePage = () => {
   const { data: profile, isLoading } = useUserProfile();
+  const avatarPath = profile?.avatar_url;
+  const { data: avatarSignedUrl } = useAvatarUrl(avatarPath);
   const { mutateAsync: updateProfile, isPending: saving } = useUpdateProfile();
   const { mutateAsync: uploadAvatar, isPending: uploading } = useUploadAvatar();
   const { toast } = useToast();
