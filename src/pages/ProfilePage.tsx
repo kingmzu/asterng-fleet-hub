@@ -32,8 +32,8 @@ const ProfilePage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const url = await uploadAvatar(file);
-      await updateProfile({ avatar_url: url });
+      const path = await uploadAvatar(file);
+      await updateProfile({ avatar_url: path });
       toast({ title: 'Avatar updated' });
     } catch (err: any) {
       toast({ title: 'Upload failed', description: err.message, variant: 'destructive' });
