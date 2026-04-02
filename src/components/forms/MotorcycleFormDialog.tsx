@@ -149,10 +149,10 @@ const MotorcycleFormDialog = ({ open, onOpenChange, motorcycle }: Props) => {
               )} />
               <FormField control={form.control} name="rider_id" render={({ field }) => (
                 <FormItem><FormLabel>Assign Rider</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => field.onChange(val === '__none__' ? '' : val)} value={field.value || '__none__'}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="">Unassigned</SelectItem>
+                      <SelectItem value="__none__">Unassigned</SelectItem>
                       {riders.map((r) => <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>)}
                     </SelectContent>
                   </Select><FormMessage />
