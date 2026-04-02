@@ -46,11 +46,8 @@ export const useUploadAvatar = () => {
         .upload(filePath, file, { upsert: true });
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile-avatars')
-        .getPublicUrl(filePath);
-
-      return publicUrl;
+      // Bucket is private — return the path for signed URL generation
+      return filePath;
     },
   });
 };
