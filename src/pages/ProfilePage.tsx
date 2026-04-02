@@ -3,7 +3,7 @@ import { Camera, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useUserProfile } from '@/hooks/api';
-import { useUpdateProfile, useUploadAvatar } from '@/hooks/api/useProfile';
+import { useUpdateProfile, useUploadAvatar, useAvatarUrl } from '@/hooks/api/useProfile';
 import { useToast } from '@/hooks/use-toast';
 
 const ProfilePage = () => {

@@ -28,6 +28,7 @@ export const useUpdateProfile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth', 'profile'] });
+      queryClient.invalidateQueries({ queryKey: ['avatar-url'] });
     },
   });
 };
