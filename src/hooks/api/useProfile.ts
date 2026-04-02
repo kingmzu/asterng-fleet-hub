@@ -2,8 +2,25 @@
  * Profile Management Hooks
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+
+/** Generate a signed URL for an avatar path (1-hour expiry) */
+export const useAvatarUrl = (avatarPath: string | null | undefined) => {
+  return useQuery({
+    queryKey: ['avatar-url', avatarPath],
+    queryFn: async () => {
+      if (!avatarPath) return null;
+      const { data, error } = await supabase.storage
+        .from('profile-avatars')
+        .createSignedUrl(avatarPath, 3600);
+      if (error) throw error;
+      return data.signedUrl;
+    },
+    enabled: !!avatarPath,
+    staleTime: 30 * 60 * 1000,
+  });
+};
 
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
