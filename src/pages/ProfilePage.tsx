@@ -75,9 +75,9 @@ const ProfilePage = () => {
       {/* Avatar */}
       <div className="flex items-center gap-5">
         <div className="relative">
-          {profile?.avatar_url ? (
+          {avatarSignedUrl ? (
             <img
-              src={profile.avatar_url}
+              src={avatarSignedUrl}
               alt="Profile"
               className="h-20 w-20 rounded-full object-cover border-2 border-border"
             />
