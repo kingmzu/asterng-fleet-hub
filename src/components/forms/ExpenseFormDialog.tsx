@@ -133,10 +133,10 @@ const ExpenseFormDialog = ({ open, onOpenChange, expense }: Props) => {
               )} />
               <FormField control={form.control} name="motorcycle_id" render={({ field }) => (
                 <FormItem><FormLabel>Motorcycle</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => field.onChange(val === '__none__' ? '' : val)} value={field.value || '__none__'}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="__none__">None</SelectItem>
                       {bikes.map((b) => <SelectItem key={b.id} value={b.id}>{b.plate_number}</SelectItem>)}
                     </SelectContent>
                   </Select><FormMessage />
@@ -144,10 +144,10 @@ const ExpenseFormDialog = ({ open, onOpenChange, expense }: Props) => {
               )} />
               <FormField control={form.control} name="rider_id" render={({ field }) => (
                 <FormItem><FormLabel>Rider</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => field.onChange(val === '__none__' ? '' : val)} value={field.value || '__none__'}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="__none__">None</SelectItem>
                       {riders.map((r) => <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>)}
                     </SelectContent>
                   </Select><FormMessage />
