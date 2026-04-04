@@ -124,7 +124,7 @@ const ExpensesPage = () => {
                       </span>
                     </TableCell>
                     <TableCell className="font-medium">{e.description}</TableCell>
-                    <TableCell className="hidden sm:table-cell text-muted-foreground">{e.motorcycle_id || '—'}</TableCell>
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">{(e as any).motorcycle?.plate_number || '—'}</TableCell>
                     <TableCell className="text-right font-semibold">{formatNaira(Number(e.amount))}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}>
