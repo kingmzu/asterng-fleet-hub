@@ -17,7 +17,7 @@ export const useMotorcycles = (
   return useQuery({
     queryKey: ['motorcycles', page, limit, status, search],
     queryFn: async () => {
-      let query = supabase.from('motorcycles').select('*', { count: 'exact' });
+      let query = supabase.from('motorcycles').select('*, rider:riders!motorcycles_assigned_rider_id_fkey(full_name)', { count: 'exact' });
 
       if (status !== 'all') {
         query = query.eq('status', status);

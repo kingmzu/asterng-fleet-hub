@@ -15,7 +15,7 @@ export const useExpenses = (
   return useQuery({
     queryKey: ['expenses', page, limit, category],
     queryFn: async () => {
-      let query = supabase.from('expenses').select('*', { count: 'exact' });
+      let query = supabase.from('expenses').select('*, motorcycle:motorcycles!expenses_bike_id_fkey(plate_number), rider:riders!expenses_rider_id_fkey(full_name)', { count: 'exact' });
 
       if (category !== 'all') {
         query = query.eq('category', category);
