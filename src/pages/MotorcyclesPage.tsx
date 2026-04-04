@@ -78,7 +78,7 @@ const MotorcyclesPage = () => {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Assigned Rider</span>
                     <span className={`font-medium ${bike.rider_id ? 'text-foreground' : 'text-muted-foreground'}`}>
-                      {bike.rider_id ? 'Assigned' : 'Unassigned'}
+                      {(bike as any).rider?.full_name || (bike.rider_id ? 'Unknown' : 'Unassigned')}
                     </span>
                   </div>
                   <div className="flex justify-between">
