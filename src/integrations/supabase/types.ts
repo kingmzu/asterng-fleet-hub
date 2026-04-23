@@ -397,6 +397,7 @@ export type Database = {
           id: string
           is_with_police: boolean
           join_date: string
+          kyc_note: string | null
           kyc_status: string
           license_expiry_date: string | null
           national_id: string
@@ -423,6 +424,7 @@ export type Database = {
           id?: string
           is_with_police?: boolean
           join_date?: string
+          kyc_note?: string | null
           kyc_status?: string
           license_expiry_date?: string | null
           national_id: string
@@ -449,6 +451,7 @@ export type Database = {
           id?: string
           is_with_police?: boolean
           join_date?: string
+          kyc_note?: string | null
           kyc_status?: string
           license_expiry_date?: string | null
           national_id?: string

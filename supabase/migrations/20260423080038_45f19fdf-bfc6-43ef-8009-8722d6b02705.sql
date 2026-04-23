@@ -1,0 +1,1 @@
+ALTER TABLE public.riders ADD COLUMN IF NOT EXISTS kyc_note text;
