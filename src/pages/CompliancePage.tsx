@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import StatusBadge from '@/components/StatusBadge';
-import { useComplianceOverview, useRiders } from '@/hooks/api';
+import { useComplianceOverview, useRiders, useUserRoles } from '@/hooks/api';
+import KycReviewPanel from '@/components/KycReviewPanel';
 
 const CompliancePage = () => {
   const [page] = useState(1);
