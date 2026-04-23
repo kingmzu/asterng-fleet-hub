@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { useCreateRider, useUpdateRider, useDeleteRider } from '@/hooks/api';
+import KycDocumentsSection from '@/components/KycDocumentsSection';
 import type { Tables } from '@/integrations/supabase/types';
 
 const riderSchema = z.object({
@@ -41,6 +43,8 @@ const RiderFormDialog = ({ open, onOpenChange, rider }: Props) => {
   const updateRider = useUpdateRider();
   const deleteRider = useDeleteRider();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [kycPct, setKycPct] = useState(0);
+  const [kycHasRequired, setKycHasRequired] = useState(false);
 
   const form = useForm<RiderFormValues>({
     resolver: zodResolver(riderSchema),
@@ -111,7 +115,7 @@ const RiderFormDialog = ({ open, onOpenChange, rider }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Edit Rider' : 'Add New Rider'}</DialogTitle>
         </DialogHeader>
