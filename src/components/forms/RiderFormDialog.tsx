@@ -175,6 +175,28 @@ const RiderFormDialog = ({ open, onOpenChange, rider }: Props) => {
               </div>
             )}
 
+            {isEdit && rider && (
+              <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">KYC Completion</p>
+                  <span className="font-display text-sm font-bold text-foreground">{kycPct}%</span>
+                </div>
+                <Progress value={kycPct} className="h-2" />
+                {!kycHasRequired && (
+                  <p className="text-[11px] text-warning">Passport, National ID and BVN are required to complete KYC.</p>
+                )}
+                <KycDocumentsSection
+                  riderId={rider.id}
+                  onCompletionChange={(p, ok) => { setKycPct(p); setKycHasRequired(ok); }}
+                />
+              </div>
+            )}
+            {!isEdit && (
+              <div className="rounded-lg border border-info/30 bg-info/5 p-3 text-xs text-info">
+                Save the rider first, then upload KYC documents from the edit view.
+              </div>
+            )}
+
             <div className="flex gap-2 pt-2">
               {isEdit && !showDeleteConfirm && (
                 <Button type="button" variant="destructive" onClick={() => setShowDeleteConfirm(true)} disabled={isPending}>Delete</Button>
