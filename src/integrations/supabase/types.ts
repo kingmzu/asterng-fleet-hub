@@ -63,6 +63,13 @@ export type Database = {
             foreignKeyName: "compliance_records_rider_id_fkey"
             columns: ["rider_id"]
             isOneToOne: false
+            referencedRelation: "rider_financial_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_records_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
             referencedRelation: "riders"
             referencedColumns: ["id"]
           },
@@ -114,6 +121,13 @@ export type Database = {
             columns: ["motorcycle_id"]
             isOneToOne: false
             referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "rider_financial_view"
             referencedColumns: ["id"]
           },
           {
@@ -184,6 +198,13 @@ export type Database = {
           year?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "motorcycles_assigned_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "rider_financial_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "motorcycles_assigned_rider_id_fkey"
             columns: ["rider_id"]
@@ -278,6 +299,13 @@ export type Database = {
             columns: ["bike_id"]
             isOneToOne: false
             referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "remittances_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "rider_financial_view"
             referencedColumns: ["id"]
           },
           {
@@ -398,7 +426,47 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      rider_financial_view: {
+        Row: {
+          assigned_bike_id: string | null
+          compliance_score: number | null
+          full_name: string | null
+          id: string | null
+          join_date: string | null
+          outstanding_balance: number | null
+          status: string | null
+          total_remittance: number | null
+        }
+        Insert: {
+          assigned_bike_id?: string | null
+          compliance_score?: number | null
+          full_name?: string | null
+          id?: string | null
+          join_date?: string | null
+          outstanding_balance?: number | null
+          status?: string | null
+          total_remittance?: number | null
+        }
+        Update: {
+          assigned_bike_id?: string | null
+          compliance_score?: number | null
+          full_name?: string | null
+          id?: string | null
+          join_date?: string | null
+          outstanding_balance?: number | null
+          status?: string | null
+          total_remittance?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_riders_assigned_bike"
+            columns: ["assigned_bike_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {
