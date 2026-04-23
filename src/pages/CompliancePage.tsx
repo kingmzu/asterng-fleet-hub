@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import StatusBadge from '@/components/StatusBadge';
 import { useComplianceOverview, useRiders, useUserRoles } from '@/hooks/api';
 import KycReviewPanel from '@/components/KycReviewPanel';
+import KycRiderControl from '@/components/KycRiderControl';
 
 const CompliancePage = () => {
   const [page] = useState(1);
@@ -52,6 +53,8 @@ const CompliancePage = () => {
           {overviewLoading ? <Skeleton className="h-8 w-12" /> : <p className="font-display text-2xl font-bold text-primary">{overview?.averageScore || 0}%</p>}
         </div>
       </div>
+
+      <KycRiderControl />
 
       {isAdminOrManager && <KycReviewPanel />}
 
