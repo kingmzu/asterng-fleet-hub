@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { useCreateRider, useUpdateRider, useDeleteRider } from '@/hooks/api';
+import KycDocumentsSection from '@/components/KycDocumentsSection';
 import type { Tables } from '@/integrations/supabase/types';
 
 const riderSchema = z.object({
@@ -41,6 +43,8 @@ const RiderFormDialog = ({ open, onOpenChange, rider }: Props) => {
   const updateRider = useUpdateRider();
   const deleteRider = useDeleteRider();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [kycPct, setKycPct] = useState(0);
+  const [kycHasRequired, setKycHasRequired] = useState(false);
 
   const form = useForm<RiderFormValues>({
     resolver: zodResolver(riderSchema),
@@ -111,7 +115,7 @@ const RiderFormDialog = ({ open, onOpenChange, rider }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Edit Rider' : 'Add New Rider'}</DialogTitle>
         </DialogHeader>
@@ -168,6 +172,28 @@ const RiderFormDialog = ({ open, onOpenChange, rider }: Props) => {
                 <FormField control={form.control} name="police_case_reference" render={({ field }) => (
                   <FormItem><FormLabel>Case Reference</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
+              </div>
+            )}
+
+            {isEdit && rider && (
+              <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">KYC Completion</p>
+                  <span className="font-display text-sm font-bold text-foreground">{kycPct}%</span>
+                </div>
+                <Progress value={kycPct} className="h-2" />
+                {!kycHasRequired && (
+                  <p className="text-[11px] text-warning">Passport, National ID and BVN are required to complete KYC.</p>
+                )}
+                <KycDocumentsSection
+                  riderId={rider.id}
+                  onCompletionChange={(p, ok) => { setKycPct(p); setKycHasRequired(ok); }}
+                />
+              </div>
+            )}
+            {!isEdit && (
+              <div className="rounded-lg border border-info/30 bg-info/5 p-3 text-xs text-info">
+                Save the rider first, then upload KYC documents from the edit view.
               </div>
             )}
 

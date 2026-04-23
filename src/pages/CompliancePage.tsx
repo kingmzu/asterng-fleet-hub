@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import StatusBadge from '@/components/StatusBadge';
-import { useComplianceOverview, useRiders } from '@/hooks/api';
+import { useComplianceOverview, useRiders, useUserRoles } from '@/hooks/api';
+import KycReviewPanel from '@/components/KycReviewPanel';
 
 const CompliancePage = () => {
   const [page] = useState(1);
 
   const { data: overview, isLoading: overviewLoading } = useComplianceOverview();
   const { data: ridersData, isLoading: ridersLoading } = useRiders(page, 50, 'all', '');
+  const { data: roles = [] } = useUserRoles();
+  const isAdminOrManager = roles.includes('admin') || roles.includes('operations_manager');
 
   const riders = ridersData?.data || [];
 
@@ -49,6 +52,8 @@ const CompliancePage = () => {
           {overviewLoading ? <Skeleton className="h-8 w-12" /> : <p className="font-display text-2xl font-bold text-primary">{overview?.averageScore || 0}%</p>}
         </div>
       </div>
+
+      {isAdminOrManager && <KycReviewPanel />}
 
       <div className="rounded-xl border border-border bg-card">
         <div className="border-b border-border px-5 py-3">

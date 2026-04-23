@@ -11,3 +11,4 @@ export * from './useDashboard';
 // useExpiryAlerts is exported from useDashboard
 export * from './useCompliance';
 export * from './useProfile';
+export * from './useKycDocuments';
