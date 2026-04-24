@@ -256,9 +256,10 @@ interface DocSlotProps {
   onPreview: (doc: KycDocument) => void;
   onDelete: (doc: KycDocument) => void;
   compact?: boolean;
+  isAdmin?: boolean;
 }
 
-const DocSlot = ({ slot, doc, isUploading, onPick, onPreview, onDelete, compact }: DocSlotProps) => {
+const DocSlot = ({ slot, doc, isUploading, onPick, onPreview, onDelete, compact, isAdmin }: DocSlotProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const Icon = slot.icon;
 
@@ -293,10 +294,22 @@ const DocSlot = ({ slot, doc, isUploading, onPick, onPreview, onDelete, compact 
             <Button type="button" size="sm" variant="outline" onClick={() => onPreview(doc)} className="flex-1 gap-1">
               <Eye className="h-3 w-3" /> Preview
             </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => inputRef.current?.click()} disabled={isUploading} className="flex-1 gap-1">
+            <Button
+              type="button" size="sm" variant="outline"
+              onClick={() => inputRef.current?.click()}
+              disabled={isUploading || (doc.status === 'verified' && !isAdmin)}
+              className="flex-1 gap-1"
+              title={doc.status === 'verified' && !isAdmin ? 'Approved — admin only' : undefined}
+            >
               {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />} Replace
             </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => onDelete(doc)} className="px-2 text-destructive">
+            <Button
+              type="button" size="sm" variant="outline"
+              onClick={() => onDelete(doc)}
+              disabled={doc.status === 'verified' && !isAdmin}
+              className="px-2 text-destructive"
+              title={doc.status === 'verified' && !isAdmin ? 'Approved — admin only' : undefined}
+            >
               <X className="h-3 w-3" />
             </Button>
           </div>
