@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
-import { useCreateRider, useUpdateRider, useDeleteRider } from '@/hooks/api';
+import { useCreateRider, useUpdateRider, useDeleteRider, useUserRoles } from '@/hooks/api';
 import KycDocumentsSection from '@/components/KycDocumentsSection';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -42,6 +42,8 @@ const RiderFormDialog = ({ open, onOpenChange, rider }: Props) => {
   const createRider = useCreateRider();
   const updateRider = useUpdateRider();
   const deleteRider = useDeleteRider();
+  const { data: roles = [] } = useUserRoles();
+  const isAdmin = roles.includes('admin');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [kycPct, setKycPct] = useState(0);
   const [kycHasRequired, setKycHasRequired] = useState(false);
@@ -198,8 +200,11 @@ const RiderFormDialog = ({ open, onOpenChange, rider }: Props) => {
             )}
 
             <div className="flex gap-2 pt-2">
-              {isEdit && !showDeleteConfirm && (
+              {isEdit && isAdmin && !showDeleteConfirm && (
                 <Button type="button" variant="destructive" onClick={() => setShowDeleteConfirm(true)} disabled={isPending}>Delete</Button>
+              )}
+              {isEdit && !isAdmin && (
+                <p className="text-[11px] text-muted-foreground self-center">Only admins can delete riders.</p>
               )}
               {showDeleteConfirm && (
                 <div className="flex gap-2">

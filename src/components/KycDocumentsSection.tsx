@@ -14,6 +14,7 @@ import {
   type KycDocumentType,
   type GovernmentIdType,
 } from '@/hooks/api/useKycDocuments';
+import { useUserRoles } from '@/hooks/api';
 
 const MAX_SIZE = 5 * 1024 * 1024;
 
@@ -50,6 +51,8 @@ const validateFile = (file: File, accept: string): string | null => {
 
 const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
   const { data: docs = [], isLoading } = useKycDocuments(riderId);
+  const { data: roles = [] } = useUserRoles();
+  const isAdmin = roles.includes('admin') || roles.includes('operations_manager');
   const upload = useUploadKycDocument();
   const remove = useDeleteKycDocument();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -115,6 +118,10 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
   };
 
   const handleDelete = async (doc: KycDocument) => {
+    if (doc.status === 'verified' && !isAdmin) {
+      toast({ title: 'Locked', description: 'Approved documents can only be removed by an admin.', variant: 'destructive' });
+      return;
+    }
     try {
       await remove.mutateAsync(doc);
       toast({ title: 'Document removed' });
@@ -143,6 +150,7 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
             onPick={(file) => handleFile(file, slot.type, slot.accept)}
             onPreview={handlePreview}
             onDelete={handleDelete}
+            isAdmin={isAdmin}
           />
         ))}
 
@@ -176,6 +184,7 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
             onPick={(file) => handleFile(file, 'government_id', 'image/jpeg,image/png,application/pdf', govIdType)}
             onPreview={handlePreview}
             onDelete={handleDelete}
+            isAdmin={isAdmin}
             compact
           />
         </div>
@@ -249,9 +258,10 @@ interface DocSlotProps {
   onPreview: (doc: KycDocument) => void;
   onDelete: (doc: KycDocument) => void;
   compact?: boolean;
+  isAdmin?: boolean;
 }
 
-const DocSlot = ({ slot, doc, isUploading, onPick, onPreview, onDelete, compact }: DocSlotProps) => {
+const DocSlot = ({ slot, doc, isUploading, onPick, onPreview, onDelete, compact, isAdmin }: DocSlotProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const Icon = slot.icon;
 
@@ -286,10 +296,22 @@ const DocSlot = ({ slot, doc, isUploading, onPick, onPreview, onDelete, compact 
             <Button type="button" size="sm" variant="outline" onClick={() => onPreview(doc)} className="flex-1 gap-1">
               <Eye className="h-3 w-3" /> Preview
             </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => inputRef.current?.click()} disabled={isUploading} className="flex-1 gap-1">
+            <Button
+              type="button" size="sm" variant="outline"
+              onClick={() => inputRef.current?.click()}
+              disabled={isUploading || (doc.status === 'verified' && !isAdmin)}
+              className="flex-1 gap-1"
+              title={doc.status === 'verified' && !isAdmin ? 'Approved — admin only' : undefined}
+            >
               {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />} Replace
             </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => onDelete(doc)} className="px-2 text-destructive">
+            <Button
+              type="button" size="sm" variant="outline"
+              onClick={() => onDelete(doc)}
+              disabled={doc.status === 'verified' && !isAdmin}
+              className="px-2 text-destructive"
+              title={doc.status === 'verified' && !isAdmin ? 'Approved — admin only' : undefined}
+            >
               <X className="h-3 w-3" />
             </Button>
           </div>
