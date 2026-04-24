@@ -4,24 +4,51 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import StatusBadge from '@/components/StatusBadge';
-import { useRiders } from '@/hooks/api';
+import ExportDialog from '@/components/ExportDialog';
+import { useRiders, useUserRoles } from '@/hooks/api';
+import { useDebounce } from '@/hooks/useDebounce';
 import { formatNaira } from '@/lib/mockData';
 import RiderFormDialog from '@/components/forms/RiderFormDialog';
+import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
+
+type Rider = Tables<'riders'>;
 
 const RidersPage = () => {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const search = useDebounce(searchInput, 300);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [formOpen, setFormOpen] = useState(false);
-  const [editingRider, setEditingRider] = useState<Tables<'riders'> | null>(null);
+  const [editingRider, setEditingRider] = useState<Rider | null>(null);
+
+  const { data: roles = [] } = useUserRoles();
+  const isAdmin = roles.includes('admin');
 
   const { data, isLoading, error } = useRiders(page, 12, filterStatus, search);
   const riders = data?.data || [];
   const totalPages = data?.pagination.pages || 0;
 
   const openAdd = () => { setEditingRider(null); setFormOpen(true); };
-  const openEdit = (rider: Tables<'riders'>) => { setEditingRider(rider); setFormOpen(true); };
+  const openEdit = (rider: Rider) => { setEditingRider(rider); setFormOpen(true); };
+
+  const exportColumns = [
+    { header: 'Full Name', accessor: (r: Rider) => r.full_name },
+    { header: 'Phone', accessor: (r: Rider) => r.phone_number },
+    { header: 'Email', accessor: (r: Rider) => r.email || '' },
+    { header: 'Status', accessor: (r: Rider) => r.status },
+    { header: 'KYC Status', accessor: (r: Rider) => r.kyc_status },
+    { header: 'Compliance %', accessor: (r: Rider) => r.compliance_score },
+    { header: 'Total Paid (₦)', accessor: (r: Rider) => Number(r.total_remittance) },
+    { header: 'Outstanding (₦)', accessor: (r: Rider) => Number(r.outstanding_balance) },
+    { header: 'Join Date', accessor: (r: Rider) => r.join_date },
+  ];
+
+  const fetchAllRiders = async (): Promise<Rider[]> => {
+    const { data, error } = await supabase.from('riders').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  };
 
   return (
     <div className="space-y-5">
@@ -32,13 +59,27 @@ const RidersPage = () => {
             {isLoading ? 'Loading...' : `${data?.pagination.total || 0} registered riders`}
           </p>
         </div>
-        <Button className="gap-2" onClick={openAdd}><Plus className="h-4 w-4" /> Add Rider</Button>
+        <div className="flex gap-2">
+          <ExportDialog
+            filteredRows={riders}
+            fetchAll={fetchAllRiders}
+            columns={exportColumns}
+            fileBase="riders"
+            title="Riders"
+          />
+          <Button className="gap-2" onClick={openAdd}><Plus className="h-4 w-4" /> Add Rider</Button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search by name or phone..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="pl-9" disabled={isLoading} />
+          <Input
+            placeholder="Search by name or phone..."
+            value={searchInput}
+            onChange={(e) => { setSearchInput(e.target.value); setPage(1); }}
+            className="pl-9"
+          />
         </div>
         <div className="flex gap-2">
           {['all', 'active', 'suspended', 'pending'].map((s) => (
@@ -86,9 +127,9 @@ const RidersPage = () => {
                       {rider.compliance_score}%
                     </p>
                   </div>
-                  <div className="rounded-lg bg-muted/50 px-3 py-2">
-                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Total Paid</p>
-                    <p className="font-display text-lg font-bold text-foreground">{formatNaira(Number(rider.total_remittance))}</p>
+                  <div className="rounded-lg bg-success/10 px-3 py-2">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-success">Total Amount Paid</p>
+                    <p className="font-display text-lg font-bold text-success">{formatNaira(Number(rider.total_remittance))}</p>
                   </div>
                 </div>
 
@@ -128,7 +169,7 @@ const RidersPage = () => {
         </div>
       )}
 
-      <RiderFormDialog open={formOpen} onOpenChange={setFormOpen} rider={editingRider} />
+      <RiderFormDialog open={formOpen} onOpenChange={setFormOpen} rider={editingRider} canDelete={isAdmin} />
     </div>
   );
 };

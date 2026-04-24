@@ -25,7 +25,7 @@ const Dashboard = () => {
   const { toast } = useToast();
 
   const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats();
-  const { data: trends, isLoading: trendsLoading } = useRevenueTrends(6);
+  const { data: trends, isLoading: trendsLoading } = useRevenueTrends(12);
   const { data: remittancesData, isLoading: remittancesLoading } = useRemittances(1, 5, 'all', '');
   const { data: outstandingRiders, isLoading: outstandingLoading } = useOutstandingRiders();
   const { data: expiryAlerts, isLoading: expiryLoading } = useExpiryAlerts();
@@ -65,7 +65,14 @@ const Dashboard = () => {
             <StatCard title="Monthly Revenue" value={stats.monthlyRevenue} icon={TrendingUp} isCurrency trend={{ value: 8, positive: true }} variant="primary" />
             <StatCard title="Monthly Expenses" value={stats.monthlyExpenses} icon={TrendingDown} isCurrency />
             <StatCard title="Net Profit" value={stats.netProfit} icon={Wallet} isCurrency trend={{ value: 15, positive: stats.netProfit > 0 }} />
-            <StatCard title="Overdue" value={stats.overduePayments} icon={AlertTriangle} variant="destructive" />
+            <StatCard
+              title="Due"
+              value={stats.dueAmount}
+              icon={AlertTriangle}
+              isCurrency
+              variant="destructive"
+              subtitle={`${stats.overdueCount} overdue payment${stats.overdueCount === 1 ? '' : 's'}`}
+            />
           </>
         ) : null}
       </div>

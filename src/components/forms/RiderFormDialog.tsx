@@ -35,9 +35,10 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   rider?: Rider | null;
+  canDelete?: boolean;
 }
 
-const RiderFormDialog = ({ open, onOpenChange, rider }: Props) => {
+const RiderFormDialog = ({ open, onOpenChange, rider, canDelete = false }: Props) => {
   const isEdit = !!rider;
   const createRider = useCreateRider();
   const updateRider = useUpdateRider();
@@ -198,8 +199,11 @@ const RiderFormDialog = ({ open, onOpenChange, rider }: Props) => {
             )}
 
             <div className="flex gap-2 pt-2">
-              {isEdit && !showDeleteConfirm && (
+              {isEdit && canDelete && !showDeleteConfirm && (
                 <Button type="button" variant="destructive" onClick={() => setShowDeleteConfirm(true)} disabled={isPending}>Delete</Button>
+              )}
+              {isEdit && !canDelete && (
+                <span className="text-xs text-muted-foreground self-center">Only admins can delete riders</span>
               )}
               {showDeleteConfirm && (
                 <div className="flex gap-2">

@@ -8,9 +8,10 @@ interface StatCardProps {
   trend?: { value: number; positive: boolean };
   isCurrency?: boolean;
   variant?: 'default' | 'primary' | 'accent' | 'destructive';
+  subtitle?: string;
 }
 
-const StatCard = ({ title, value, icon: Icon, trend, isCurrency, variant = 'default' }: StatCardProps) => {
+const StatCard = ({ title, value, icon: Icon, trend, isCurrency, variant = 'default', subtitle }: StatCardProps) => {
   const variantStyles = {
     default: 'bg-card border border-border',
     primary: 'bg-primary text-primary-foreground',
@@ -37,6 +38,11 @@ const StatCard = ({ title, value, icon: Icon, trend, isCurrency, variant = 'defa
           <p className="font-display text-2xl font-bold">
             {isCurrency ? formatNaira(value as number) : value}
           </p>
+          {subtitle && (
+            <p className={`text-xs ${variant === 'primary' ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+              {subtitle}
+            </p>
+          )}
           {trend && (
             <p className={`text-xs font-medium ${variant === 'primary' ? (trend.positive ? 'text-primary-foreground/80' : 'text-primary-foreground/60') : trendColor}`}>
               {trend.positive ? '↑' : '↓'} {Math.abs(trend.value)}% vs last month
