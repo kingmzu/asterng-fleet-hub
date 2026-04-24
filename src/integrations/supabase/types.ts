@@ -84,6 +84,7 @@ export type Database = {
           expense_date: string
           id: string
           motorcycle_id: string | null
+          receipt_url: string | null
           recorded_by: string | null
           rider_id: string | null
           rider_name: string | null
@@ -97,6 +98,7 @@ export type Database = {
           expense_date?: string
           id?: string
           motorcycle_id?: string | null
+          receipt_url?: string | null
           recorded_by?: string | null
           rider_id?: string | null
           rider_name?: string | null
@@ -110,6 +112,7 @@ export type Database = {
           expense_date?: string
           id?: string
           motorcycle_id?: string | null
+          receipt_url?: string | null
           recorded_by?: string | null
           rider_id?: string | null
           rider_name?: string | null
@@ -562,6 +565,11 @@ export type Database = {
         }
         Returns: Json
       }
+      recalc_bike_maintenance: {
+        Args: { p_bike_id: string }
+        Returns: undefined
+      }
+      recalc_bike_revenue: { Args: { p_bike_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "operations_manager" | "accountant" | "rider"
