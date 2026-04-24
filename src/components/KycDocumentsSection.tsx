@@ -14,6 +14,7 @@ import {
   type KycDocumentType,
   type GovernmentIdType,
 } from '@/hooks/api/useKycDocuments';
+import { useUserRoles } from '@/hooks/api';
 
 const MAX_SIZE = 5 * 1024 * 1024;
 
@@ -50,6 +51,8 @@ const validateFile = (file: File, accept: string): string | null => {
 
 const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
   const { data: docs = [], isLoading } = useKycDocuments(riderId);
+  const { data: roles = [] } = useUserRoles();
+  const isAdmin = roles.includes('admin') || roles.includes('operations_manager');
   const upload = useUploadKycDocument();
   const remove = useDeleteKycDocument();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -115,6 +118,10 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
   };
 
   const handleDelete = async (doc: KycDocument) => {
+    if (doc.status === 'verified' && !isAdmin) {
+      toast({ title: 'Locked', description: 'Approved documents can only be removed by an admin.', variant: 'destructive' });
+      return;
+    }
     try {
       await remove.mutateAsync(doc);
       toast({ title: 'Document removed' });
