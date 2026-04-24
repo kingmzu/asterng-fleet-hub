@@ -65,7 +65,14 @@ const Dashboard = () => {
             <StatCard title="Monthly Revenue" value={stats.monthlyRevenue} icon={TrendingUp} isCurrency trend={{ value: 8, positive: true }} variant="primary" />
             <StatCard title="Monthly Expenses" value={stats.monthlyExpenses} icon={TrendingDown} isCurrency />
             <StatCard title="Net Profit" value={stats.netProfit} icon={Wallet} isCurrency trend={{ value: 15, positive: stats.netProfit > 0 }} />
-            <StatCard title="Overdue" value={stats.overduePayments} icon={AlertTriangle} variant="destructive" />
+            <StatCard
+              title="Due"
+              value={stats.totalDueAmount}
+              icon={AlertTriangle}
+              isCurrency
+              variant="destructive"
+              subtitle={`${stats.overduePayments} overdue`}
+            />
           </>
         ) : null}
       </div>

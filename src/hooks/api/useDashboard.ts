@@ -9,23 +9,33 @@ export const useDashboardStats = () => {
   return useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: async () => {
-      const [bikesRes, ridersRes, remittancesRes, expensesRes] = await Promise.all([
-        supabase.from('motorcycles').select('id, status', { count: 'exact' }),
-        supabase.from('riders').select('id, status', { count: 'exact' }),
-        supabase.from('remittances').select('amount, status'),
-        supabase.from('expenses').select('amount'),
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+      const monthStartIso = monthStart.toISOString().split('T')[0];
+
+      const [bikesRes, ridersRes, monthRemRes, monthExpRes, allRemRes] = await Promise.all([
+        supabase.from('motorcycles').select('id, status', { count: 'exact', head: true }),
+        supabase.from('riders').select('id, status, outstanding_balance'),
+        supabase.from('remittances').select('amount').gte('remittance_date', monthStartIso),
+        supabase.from('expenses').select('amount').gte('expense_date', monthStartIso),
+        supabase.from('remittances').select('status'),
       ]);
 
       if (bikesRes.error) throw bikesRes.error;
       if (ridersRes.error) throw ridersRes.error;
-      if (remittancesRes.error) throw remittancesRes.error;
-      if (expensesRes.error) throw expensesRes.error;
+      if (monthRemRes.error) throw monthRemRes.error;
+      if (monthExpRes.error) throw monthExpRes.error;
+      if (allRemRes.error) throw allRemRes.error;
 
       const totalBikes = bikesRes.count || 0;
-      const activeRiders = (ridersRes.data || []).filter((r) => r.status === 'active').length;
-      const monthlyRevenue = (remittancesRes.data || []).reduce((s, r) => s + Number(r.amount), 0);
-      const monthlyExpenses = (expensesRes.data || []).reduce((s, e) => s + Number(e.amount), 0);
-      const overduePayments = (remittancesRes.data || []).filter((r) => r.status === 'overdue').length;
+      const riders = ridersRes.data || [];
+      const activeRiders = riders.filter((r) => r.status === 'active').length;
+      const totalDueAmount = riders.reduce((s, r) => s + Number(r.outstanding_balance || 0), 0);
+
+      const monthlyRevenue = (monthRemRes.data || []).reduce((s, r) => s + Number(r.amount), 0);
+      const monthlyExpenses = (monthExpRes.data || []).reduce((s, e) => s + Number(e.amount), 0);
+      const overduePayments = (allRemRes.data || []).filter((r) => r.status === 'overdue').length;
 
       return {
         totalBikes,
@@ -34,18 +44,57 @@ export const useDashboardStats = () => {
         monthlyExpenses,
         netProfit: monthlyRevenue - monthlyExpenses,
         overduePayments,
+        totalDueAmount,
       };
     },
-    staleTime: 2 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 };
 
-export const useRevenueTrends = (_months = 6) => {
+export const useRevenueTrends = (months = 6) => {
   return useQuery({
-    queryKey: ['dashboard', 'revenue-trends'],
+    queryKey: ['dashboard', 'revenue-trends', months],
     queryFn: async () => {
-      // Return empty for now - will populate with real monthly data later
-      return [] as Array<{ month: string; revenue: number; expenses: number }>;
+      const start = new Date();
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+      start.setMonth(start.getMonth() - (months - 1));
+      const startIso = start.toISOString().split('T')[0];
+
+      const [remRes, expRes] = await Promise.all([
+        supabase.from('remittances').select('amount, remittance_date').gte('remittance_date', startIso),
+        supabase.from('expenses').select('amount, expense_date').gte('expense_date', startIso),
+      ]);
+
+      if (remRes.error) throw remRes.error;
+      if (expRes.error) throw expRes.error;
+
+      const labels: { key: string; month: string }[] = [];
+      for (let i = 0; i < months; i++) {
+        const d = new Date(start);
+        d.setMonth(start.getMonth() + i);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const month = d.toLocaleString('en-US', { month: 'short' });
+        labels.push({ key, month });
+      }
+
+      const buckets: Record<string, { revenue: number; expenses: number }> = {};
+      labels.forEach((l) => (buckets[l.key] = { revenue: 0, expenses: 0 }));
+
+      (remRes.data || []).forEach((r: any) => {
+        const k = r.remittance_date?.slice(0, 7);
+        if (buckets[k]) buckets[k].revenue += Number(r.amount);
+      });
+      (expRes.data || []).forEach((e: any) => {
+        const k = e.expense_date?.slice(0, 7);
+        if (buckets[k]) buckets[k].expenses += Number(e.amount);
+      });
+
+      return labels.map((l) => ({
+        month: l.month,
+        revenue: buckets[l.key].revenue,
+        expenses: buckets[l.key].expenses,
+      }));
     },
     staleTime: 5 * 60 * 1000,
   });
