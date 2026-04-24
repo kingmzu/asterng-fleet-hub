@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Pencil, Download } from 'lucide-react';
+import { Search, Plus, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -7,21 +7,16 @@ import StatusBadge from '@/components/StatusBadge';
 import { useRiders } from '@/hooks/api';
 import { formatNaira } from '@/lib/mockData';
 import RiderFormDialog from '@/components/forms/RiderFormDialog';
-import ExportDialog from '@/components/ExportDialog';
-import { useDebounce } from '@/hooks/useDebounce';
-import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 
 const RidersPage = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 350);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [formOpen, setFormOpen] = useState(false);
-  const [exportOpen, setExportOpen] = useState(false);
   const [editingRider, setEditingRider] = useState<Tables<'riders'> | null>(null);
 
-  const { data, isLoading, error } = useRiders(page, 12, filterStatus, debouncedSearch);
+  const { data, isLoading, error } = useRiders(page, 12, filterStatus, search);
   const riders = data?.data || [];
   const totalPages = data?.pagination.pages || 0;
 
@@ -37,10 +32,7 @@ const RidersPage = () => {
             {isLoading ? 'Loading...' : `${data?.pagination.total || 0} registered riders`}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={() => setExportOpen(true)} disabled={isLoading}><Download className="h-4 w-4" /> Export</Button>
-          <Button className="gap-2" onClick={openAdd}><Plus className="h-4 w-4" /> Add Rider</Button>
-        </div>
+        <Button className="gap-2" onClick={openAdd}><Plus className="h-4 w-4" /> Add Rider</Button>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -137,28 +129,6 @@ const RidersPage = () => {
       )}
 
       <RiderFormDialog open={formOpen} onOpenChange={setFormOpen} rider={editingRider} />
-      <ExportDialog
-        open={exportOpen}
-        onOpenChange={setExportOpen}
-        filename="riders"
-        filteredRows={riders}
-        loadAllRows={async () => {
-          const { data, error } = await supabase.from('riders').select('*').order('created_at', { ascending: false });
-          if (error) throw error;
-          return data || [];
-        }}
-        columns={[
-          { header: 'Full Name', accessor: (r: any) => r.full_name },
-          { header: 'Phone', accessor: (r: any) => r.phone_number },
-          { header: 'Email', accessor: (r: any) => r.email || '' },
-          { header: 'Status', accessor: (r: any) => r.status },
-          { header: 'KYC', accessor: (r: any) => r.kyc_status },
-          { header: 'Compliance %', accessor: (r: any) => r.compliance_score },
-          { header: 'Total Amount Paid', accessor: (r: any) => Number(r.total_remittance) },
-          { header: 'Outstanding', accessor: (r: any) => Number(r.outstanding_balance) },
-          { header: 'Joined', accessor: (r: any) => r.join_date },
-        ]}
-      />
     </div>
   );
 };
