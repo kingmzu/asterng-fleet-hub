@@ -150,6 +150,7 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
             onPick={(file) => handleFile(file, slot.type, slot.accept)}
             onPreview={handlePreview}
             onDelete={handleDelete}
+            isAdmin={isAdmin}
           />
         ))}
 
@@ -183,6 +184,7 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
             onPick={(file) => handleFile(file, 'government_id', 'image/jpeg,image/png,application/pdf', govIdType)}
             onPreview={handlePreview}
             onDelete={handleDelete}
+            isAdmin={isAdmin}
             compact
           />
         </div>
