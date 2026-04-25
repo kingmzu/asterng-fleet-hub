@@ -51,6 +51,8 @@ const validateFile = (file: File, accept: string): string | null => {
 
 const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
   const { data: docs = [], isLoading } = useKycDocuments(riderId);
+  const { data: roles = [] } = useUserRoles();
+  const isAdmin = roles.includes('admin');
   const upload = useUploadKycDocument();
   const remove = useDeleteKycDocument();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
