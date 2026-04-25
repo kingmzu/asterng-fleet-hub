@@ -44,14 +44,21 @@ export function exportPdf<T>(
   title?: string
 ) {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt' });
-  doc.setFontSize(14);
-  doc.text(title || fileBase, 40, 36);
+  // Brand header
+  doc.setFillColor(217, 119, 6);
+  doc.rect(0, 0, doc.internal.pageSize.getWidth(), 6, 'F');
+  doc.setFontSize(16);
+  doc.setTextColor(217, 119, 6);
+  doc.text('ASTERNG', 40, 32);
+  doc.setFontSize(13);
+  doc.setTextColor(40);
+  doc.text(title || fileBase, 40, 52);
   doc.setFontSize(9);
   doc.setTextColor(120);
-  doc.text(`Generated ${new Date().toLocaleString()}`, 40, 52);
+  doc.text(`Generated ${new Date().toLocaleString()}`, 40, 68);
 
   autoTable(doc, {
-    startY: 64,
+    startY: 80,
     head: [columns.map((c) => c.header)],
     body: rows.map((r) =>
       columns.map((c) => {
