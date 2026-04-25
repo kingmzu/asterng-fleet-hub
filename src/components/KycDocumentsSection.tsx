@@ -202,19 +202,24 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
           <p className="text-xs text-muted-foreground">No additional documents uploaded yet.</p>
         ) : (
           <ul className="space-y-2">
-            {additionals.map((d) => (
-              <li key={d.id} className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2">
-                <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span className="flex-1 truncate text-sm text-foreground">{d.file_name}</span>
-                <StatusPill status={d.status} />
-                <button type="button" onClick={() => handlePreview(d)} className="rounded p-1 text-muted-foreground hover:bg-muted" aria-label="Preview">
-                  <Eye className="h-4 w-4" />
-                </button>
-                <button type="button" onClick={() => handleDelete(d)} className="rounded p-1 text-destructive hover:bg-destructive/10" aria-label="Delete">
-                  <X className="h-4 w-4" />
-                </button>
-              </li>
-            ))}
+            {additionals.map((d) => {
+              const locked = d.status === 'verified' && !isAdmin;
+              return (
+                <li key={d.id} className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2">
+                  <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="flex-1 truncate text-sm text-foreground">{d.file_name}</span>
+                  <StatusPill status={d.status} />
+                  <button type="button" onClick={() => handlePreview(d)} className="rounded p-1 text-muted-foreground hover:bg-muted" aria-label="Preview">
+                    <Eye className="h-4 w-4" />
+                  </button>
+                  {!locked && (
+                    <button type="button" onClick={() => handleDelete(d)} className="rounded p-1 text-destructive hover:bg-destructive/10" aria-label="Delete">
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
