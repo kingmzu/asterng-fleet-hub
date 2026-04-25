@@ -143,6 +143,7 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
             slot={slot}
             doc={findDoc(slot.type)}
             isUploading={activeUpload === `${slot.type}-`}
+            isAdmin={isAdmin}
             onPick={(file) => handleFile(file, slot.type, slot.accept)}
             onPreview={handlePreview}
             onDelete={handleDelete}
@@ -176,6 +177,7 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
             }}
             doc={findDoc('government_id', govIdType)}
             isUploading={activeUpload === `government_id-${govIdType}`}
+            isAdmin={isAdmin}
             onPick={(file) => handleFile(file, 'government_id', 'image/jpeg,image/png,application/pdf', govIdType)}
             onPreview={handlePreview}
             onDelete={handleDelete}
