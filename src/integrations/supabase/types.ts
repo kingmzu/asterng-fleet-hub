@@ -544,6 +544,10 @@ export type Database = {
       }
     }
     Functions: {
+      calc_rider_compliance_score: {
+        Args: { p_rider_id: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -570,6 +574,10 @@ export type Database = {
         Returns: undefined
       }
       recalc_bike_revenue: { Args: { p_bike_id: string }; Returns: undefined }
+      refresh_rider_compliance_score: {
+        Args: { p_rider_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "operations_manager" | "accountant" | "rider"
