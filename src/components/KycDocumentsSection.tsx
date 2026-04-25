@@ -250,13 +250,14 @@ interface DocSlotProps {
   slot: { type: KycDocumentType; label: string; required: boolean; accept: string; description: string; icon: typeof FileText };
   doc?: KycDocument;
   isUploading: boolean;
+  isAdmin?: boolean;
   onPick: (file: File) => void;
   onPreview: (doc: KycDocument) => void;
   onDelete: (doc: KycDocument) => void;
   compact?: boolean;
 }
 
-const DocSlot = ({ slot, doc, isUploading, onPick, onPreview, onDelete, compact }: DocSlotProps) => {
+const DocSlot = ({ slot, doc, isUploading, isAdmin, onPick, onPreview, onDelete, compact }: DocSlotProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const Icon = slot.icon;
 
