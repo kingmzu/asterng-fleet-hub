@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useLogout, useCurrentUser, useUserProfile } from '@/hooks/api';
+import { useConversations, useRealtimeMessages } from '@/hooks/api/useMessaging';
+import { useTheme } from '@/components/ThemeProvider';
 import {
   LayoutDashboard,
   Users,
@@ -12,8 +14,13 @@ import {
   X,
   LogOut,
   ChevronRight,
+  MessageSquare,
+  Settings,
+  Sun,
+  Moon,
 } from 'lucide-react';
-import logo from '@/assets/asterng-icon.png';
+import logoMark from '@/assets/asterng-logo-mark.png';
+import { Badge } from '@/components/ui/badge';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -22,6 +29,8 @@ const navItems = [
   { to: '/remittances', label: 'Remittances', icon: Wallet },
   { to: '/expenses', label: 'Expenses', icon: Receipt },
   { to: '/compliance', label: 'Compliance', icon: Shield },
+  { to: '/messages', label: 'Messages', icon: MessageSquare },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
 interface AppLayoutProps {
@@ -35,15 +44,17 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const { mutate: logout } = useLogout();
   const { user } = useCurrentUser();
   const { data: profile } = useUserProfile();
+  const { data: conversations = [] } = useConversations();
+  const { resolved, setTheme } = useTheme();
+  useRealtimeMessages();
 
+  const totalUnread = conversations.reduce((s, c) => s + (c.unread_count ?? 0), 0);
   const displayName = profile?.full_name || user?.email || 'User';
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
-
-  const currentPage = navItems.find(item => item.to === location.pathname)?.label || 'Dashboard';
+  const currentPage = navItems.find((item) => item.to === location.pathname)?.label || 'Dashboard';
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm lg:hidden"
@@ -57,9 +68,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Logo */}
+        {/* Logo — kept in white container so brand colors are preserved in any theme */}
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
-          <img src={logo} alt="ASTERNG logo" className="h-9 w-9 object-contain" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
+            <img src={logoMark} alt="ASTERNG logo" className="h-full w-full object-contain" />
+          </div>
           <div>
             <h1 className="font-display text-base font-bold text-sidebar-primary">ASTERNG</h1>
             <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/60">Aster A+ Fleet</p>
@@ -88,8 +101,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
               }
             >
               <item.icon className="h-[18px] w-[18px] shrink-0" />
-              {item.label}
-              <ChevronRight className={`ml-auto h-4 w-4 opacity-0 transition-opacity group-hover:opacity-50`} />
+              <span className="flex-1">{item.label}</span>
+              {item.to === '/messages' && totalUnread > 0 && (
+                <Badge className="h-5 min-w-5 px-1.5 text-[10px]">{totalUnread}</Badge>
+              )}
+              <ChevronRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-50" />
             </NavLink>
           ))}
         </nav>
@@ -117,6 +133,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             <button
               onClick={() => logout(undefined, { onSuccess: () => navigate('/login') })}
               className="rounded-md p-1 text-sidebar-foreground/50 hover:text-sidebar-accent-foreground"
+              title="Sign out"
             >
               <LogOut className="h-4 w-4" />
             </button>
@@ -124,9 +141,8 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* Main */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top bar */}
         <header className="flex h-14 items-center gap-4 border-b border-border bg-card px-4 lg:px-6">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -134,14 +150,23 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           >
             <Menu className="h-5 w-5" />
           </button>
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white p-0.5 shadow-sm ring-1 ring-border lg:hidden">
+            <img src={logoMark} alt="ASTERNG" className="h-full w-full object-contain" />
+          </div>
           <h2 className="font-display text-lg font-semibold text-foreground">{currentPage}</h2>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setTheme(resolved === 'dark' ? 'light' : 'dark')}
+              className="rounded-md p-2 text-muted-foreground hover:bg-muted"
+              title={`Switch to ${resolved === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {resolved === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          </div>
         </header>
 
-        {/* Page content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <div className="animate-fade-in">
-            {children}
-          </div>
+          <div className="animate-fade-in">{children}</div>
         </main>
       </div>
     </div>
