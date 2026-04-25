@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import logo from '@/assets/asterng-logo-full.png';
 import { Input } from '@/components/ui/input';
 import { useLogin, useSignup } from '@/hooks/api';
 import { useToast } from '@/hooks/use-toast';
@@ -68,12 +68,14 @@ const LoginPage = () => {
           {/* Header */}
           <div className="text-center space-y-2">
             <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <LogIn className="h-8 w-8 text-primary" />
-              </div>
+              <img
+                src={logo}
+                alt="ASTERNG"
+                className="h-20 w-auto object-contain"
+              />
             </div>
-            <h1 className="font-display text-3xl font-bold text-foreground">
-              ASTERNG Fleet Hub
+            <h1 className="font-display text-2xl font-bold text-foreground">
+              Fleet Hub
             </h1>
             <p className="text-sm text-muted-foreground">
               {isSignup ? 'Create your account' : 'Sign in to your account to continue'}

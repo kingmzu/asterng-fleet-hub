@@ -13,7 +13,7 @@ import {
   LogOut,
   ChevronRight,
 } from 'lucide-react';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/asterng-icon.png';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
