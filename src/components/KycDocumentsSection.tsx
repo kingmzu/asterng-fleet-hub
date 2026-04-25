@@ -14,6 +14,7 @@ import {
   type KycDocumentType,
   type GovernmentIdType,
 } from '@/hooks/api/useKycDocuments';
+import { useUserRoles } from '@/hooks/api/useAuth';
 
 const MAX_SIZE = 5 * 1024 * 1024;
 
@@ -50,6 +51,8 @@ const validateFile = (file: File, accept: string): string | null => {
 
 const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
   const { data: docs = [], isLoading } = useKycDocuments(riderId);
+  const { data: roles = [] } = useUserRoles();
+  const isAdmin = roles.includes('admin');
   const upload = useUploadKycDocument();
   const remove = useDeleteKycDocument();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -140,6 +143,7 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
             slot={slot}
             doc={findDoc(slot.type)}
             isUploading={activeUpload === `${slot.type}-`}
+            isAdmin={isAdmin}
             onPick={(file) => handleFile(file, slot.type, slot.accept)}
             onPreview={handlePreview}
             onDelete={handleDelete}
@@ -173,6 +177,7 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
             }}
             doc={findDoc('government_id', govIdType)}
             isUploading={activeUpload === `government_id-${govIdType}`}
+            isAdmin={isAdmin}
             onPick={(file) => handleFile(file, 'government_id', 'image/jpeg,image/png,application/pdf', govIdType)}
             onPreview={handlePreview}
             onDelete={handleDelete}
@@ -197,19 +202,24 @@ const KycDocumentsSection = ({ riderId, onCompletionChange }: Props) => {
           <p className="text-xs text-muted-foreground">No additional documents uploaded yet.</p>
         ) : (
           <ul className="space-y-2">
-            {additionals.map((d) => (
-              <li key={d.id} className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2">
-                <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span className="flex-1 truncate text-sm text-foreground">{d.file_name}</span>
-                <StatusPill status={d.status} />
-                <button type="button" onClick={() => handlePreview(d)} className="rounded p-1 text-muted-foreground hover:bg-muted" aria-label="Preview">
-                  <Eye className="h-4 w-4" />
-                </button>
-                <button type="button" onClick={() => handleDelete(d)} className="rounded p-1 text-destructive hover:bg-destructive/10" aria-label="Delete">
-                  <X className="h-4 w-4" />
-                </button>
-              </li>
-            ))}
+            {additionals.map((d) => {
+              const locked = d.status === 'verified' && !isAdmin;
+              return (
+                <li key={d.id} className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2">
+                  <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="flex-1 truncate text-sm text-foreground">{d.file_name}</span>
+                  <StatusPill status={d.status} />
+                  <button type="button" onClick={() => handlePreview(d)} className="rounded p-1 text-muted-foreground hover:bg-muted" aria-label="Preview">
+                    <Eye className="h-4 w-4" />
+                  </button>
+                  {!locked && (
+                    <button type="button" onClick={() => handleDelete(d)} className="rounded p-1 text-destructive hover:bg-destructive/10" aria-label="Delete">
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
@@ -245,13 +255,14 @@ interface DocSlotProps {
   slot: { type: KycDocumentType; label: string; required: boolean; accept: string; description: string; icon: typeof FileText };
   doc?: KycDocument;
   isUploading: boolean;
+  isAdmin?: boolean;
   onPick: (file: File) => void;
   onPreview: (doc: KycDocument) => void;
   onDelete: (doc: KycDocument) => void;
   compact?: boolean;
 }
 
-const DocSlot = ({ slot, doc, isUploading, onPick, onPreview, onDelete, compact }: DocSlotProps) => {
+const DocSlot = ({ slot, doc, isUploading, isAdmin, onPick, onPreview, onDelete, compact }: DocSlotProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const Icon = slot.icon;
 
@@ -286,12 +297,21 @@ const DocSlot = ({ slot, doc, isUploading, onPick, onPreview, onDelete, compact 
             <Button type="button" size="sm" variant="outline" onClick={() => onPreview(doc)} className="flex-1 gap-1">
               <Eye className="h-3 w-3" /> Preview
             </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => inputRef.current?.click()} disabled={isUploading} className="flex-1 gap-1">
-              {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />} Replace
-            </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => onDelete(doc)} className="px-2 text-destructive">
-              <X className="h-3 w-3" />
-            </Button>
+            {(doc.status !== 'verified' || isAdmin) && (
+              <>
+                <Button type="button" size="sm" variant="outline" onClick={() => inputRef.current?.click()} disabled={isUploading} className="flex-1 gap-1">
+                  {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />} Replace
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => onDelete(doc)} className="px-2 text-destructive">
+                  <X className="h-3 w-3" />
+                </Button>
+              </>
+            )}
+            {doc.status === 'verified' && !isAdmin && (
+              <span className="flex flex-1 items-center justify-center rounded border border-success/30 bg-success/5 px-2 text-[11px] text-success">
+                Locked (verified)
+              </span>
+            )}
           </div>
         </div>
       ) : (
