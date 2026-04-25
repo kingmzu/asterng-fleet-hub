@@ -1,26 +1,79 @@
-import { useState } from 'react';
-import { Shield, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Shield, AlertTriangle, CheckCircle, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import StatusBadge from '@/components/StatusBadge';
+import ExportDialog from '@/components/ExportDialog';
 import { useComplianceOverview, useRiders, useUserRoles } from '@/hooks/api';
+import { supabase } from '@/integrations/supabase/client';
+import { useDebounce } from '@/hooks/useDebounce';
 import KycReviewPanel from '@/components/KycReviewPanel';
 import KycRiderControl from '@/components/KycRiderControl';
 
 const CompliancePage = () => {
   const [page] = useState(1);
+  const [searchInput, setSearchInput] = useState('');
+  const search = useDebounce(searchInput, 300);
 
   const { data: overview, isLoading: overviewLoading } = useComplianceOverview();
   const { data: ridersData, isLoading: ridersLoading } = useRiders(page, 50, 'all', '');
   const { data: roles = [] } = useUserRoles();
   const isAdminOrManager = roles.includes('admin') || roles.includes('operations_manager');
 
-  const riders = ridersData?.data || [];
+  const allRiders = ridersData?.data || [];
+  const riders = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return allRiders;
+    return allRiders.filter((r: any) =>
+      [r.full_name, r.phone_number, r.kyc_status, r.status]
+        .filter(Boolean)
+        .some((v: string) => String(v).toLowerCase().includes(q))
+    );
+  }, [allRiders, search]);
+
+  const exportColumns = [
+    { header: 'Rider', accessor: (r: any) => r.full_name },
+    { header: 'Phone', accessor: (r: any) => r.phone_number },
+    { header: 'Status', accessor: (r: any) => r.status },
+    { header: 'KYC', accessor: (r: any) => r.kyc_status },
+    { header: 'With Police', accessor: (r: any) => (r.is_with_police ? 'Yes' : 'No') },
+    { header: 'Compliance Score', accessor: (r: any) => r.compliance_score },
+  ];
+
+  const fetchAll = async () => {
+    const { data, error } = await supabase
+      .from('riders')
+      .select('full_name, phone_number, status, kyc_status, is_with_police, compliance_score')
+      .order('full_name');
+    if (error) throw error;
+    return data || [];
+  };
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-foreground">Compliance & Safety</h1>
-        <p className="text-sm text-muted-foreground">Monitor rider compliance, safety records, and fleet integrity</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-foreground">Compliance & Safety</h1>
+          <p className="text-sm text-muted-foreground">Monitor rider compliance, safety records, and fleet integrity</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search riders..."
+              className="w-64 pl-9"
+            />
+          </div>
+          <ExportDialog
+            filteredRows={riders}
+            fetchAll={fetchAll}
+            columns={exportColumns}
+            fileBase="compliance"
+            title="Compliance"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
