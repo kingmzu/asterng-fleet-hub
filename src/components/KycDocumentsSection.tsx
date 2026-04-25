@@ -14,6 +14,7 @@ import {
   type KycDocumentType,
   type GovernmentIdType,
 } from '@/hooks/api/useKycDocuments';
+import { useUserRoles } from '@/hooks/api/useAuth';
 
 const MAX_SIZE = 5 * 1024 * 1024;
 
