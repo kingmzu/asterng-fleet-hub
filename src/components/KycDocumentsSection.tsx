@@ -292,12 +292,21 @@ const DocSlot = ({ slot, doc, isUploading, isAdmin, onPick, onPreview, onDelete,
             <Button type="button" size="sm" variant="outline" onClick={() => onPreview(doc)} className="flex-1 gap-1">
               <Eye className="h-3 w-3" /> Preview
             </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => inputRef.current?.click()} disabled={isUploading} className="flex-1 gap-1">
-              {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />} Replace
-            </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => onDelete(doc)} className="px-2 text-destructive">
-              <X className="h-3 w-3" />
-            </Button>
+            {(doc.status !== 'verified' || isAdmin) && (
+              <>
+                <Button type="button" size="sm" variant="outline" onClick={() => inputRef.current?.click()} disabled={isUploading} className="flex-1 gap-1">
+                  {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />} Replace
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => onDelete(doc)} className="px-2 text-destructive">
+                  <X className="h-3 w-3" />
+                </Button>
+              </>
+            )}
+            {doc.status === 'verified' && !isAdmin && (
+              <span className="flex flex-1 items-center justify-center rounded border border-success/30 bg-success/5 px-2 text-[11px] text-success">
+                Locked (verified)
+              </span>
+            )}
           </div>
         </div>
       ) : (
