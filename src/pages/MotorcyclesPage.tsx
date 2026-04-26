@@ -176,7 +176,12 @@ const MotorcyclesPage = () => {
       )}
 
       <MotorcycleFormDialog open={formOpen} onOpenChange={setFormOpen} motorcycle={editingBike} />
-    </div>
+      </TabsContent>
+
+      <TabsContent value="tracking" className="mt-0">
+        <LiveTrackingPage />
+      </TabsContent>
+    </Tabs>
   );
 };
 
