@@ -397,6 +397,45 @@ export type Database = {
           },
         ]
       }
+      pricing_settings: {
+        Row: {
+          base_fare: number
+          created_at: string
+          id: string
+          is_active: boolean
+          minimum_fare: number
+          price_per_km: number
+          price_per_minute: number
+          rate_multiplier: number
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          base_fare?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          minimum_fare?: number
+          price_per_km?: number
+          price_per_minute?: number
+          rate_multiplier?: number
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          base_fare?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          minimum_fare?: number
+          price_per_km?: number
+          price_per_minute?: number
+          rate_multiplier?: number
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -591,6 +630,185 @@ export type Database = {
             columns: ["assigned_bike_id"]
             isOneToOne: false
             referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_extras: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          label: string
+          trip_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          label: string
+          trip_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          label?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_extras_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_points: {
+        Row: {
+          id: string
+          lat: number
+          lng: number
+          recorded_at: string
+          trip_id: string
+        }
+        Insert: {
+          id?: string
+          lat: number
+          lng: number
+          recorded_at?: string
+          trip_id: string
+        }
+        Update: {
+          id?: string
+          lat?: number
+          lng?: number
+          recorded_at?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_points_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trips: {
+        Row: {
+          active_duration_seconds: number
+          base_fare: number
+          created_at: string
+          distance_cost: number
+          distance_km: number
+          end_address: string | null
+          end_lat: number | null
+          end_lng: number | null
+          ended_at: string | null
+          extras_total: number
+          id: string
+          minimum_fare: number
+          motorcycle_id: string | null
+          notes: string | null
+          paused_duration_seconds: number
+          pricing_snapshot: Json | null
+          pricing_tier: string | null
+          rate_multiplier: number
+          rider_id: string
+          start_address: string | null
+          start_lat: number | null
+          start_lng: number | null
+          started_at: string
+          started_by: string | null
+          status: string
+          time_cost: number
+          total_fare: number
+          updated_at: string
+        }
+        Insert: {
+          active_duration_seconds?: number
+          base_fare?: number
+          created_at?: string
+          distance_cost?: number
+          distance_km?: number
+          end_address?: string | null
+          end_lat?: number | null
+          end_lng?: number | null
+          ended_at?: string | null
+          extras_total?: number
+          id?: string
+          minimum_fare?: number
+          motorcycle_id?: string | null
+          notes?: string | null
+          paused_duration_seconds?: number
+          pricing_snapshot?: Json | null
+          pricing_tier?: string | null
+          rate_multiplier?: number
+          rider_id: string
+          start_address?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+          started_at?: string
+          started_by?: string | null
+          status?: string
+          time_cost?: number
+          total_fare?: number
+          updated_at?: string
+        }
+        Update: {
+          active_duration_seconds?: number
+          base_fare?: number
+          created_at?: string
+          distance_cost?: number
+          distance_km?: number
+          end_address?: string | null
+          end_lat?: number | null
+          end_lng?: number | null
+          ended_at?: string | null
+          extras_total?: number
+          id?: string
+          minimum_fare?: number
+          motorcycle_id?: string | null
+          notes?: string | null
+          paused_duration_seconds?: number
+          pricing_snapshot?: Json | null
+          pricing_tier?: string | null
+          rate_multiplier?: number
+          rider_id?: string
+          start_address?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+          started_at?: string
+          started_by?: string | null
+          status?: string
+          time_cost?: number
+          total_fare?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trips_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trips_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "rider_financial_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trips_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
             referencedColumns: ["id"]
           },
         ]
