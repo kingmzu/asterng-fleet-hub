@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme, Theme } from '@/components/ThemeProvider';
-import { Sun, Moon, Monitor, Lock, Palette } from 'lucide-react';
+import { Sun, Moon, Monitor, Lock, Palette, Gauge } from 'lucide-react';
+import { useUserRoles } from '@/hooks/api/useAuth';
+import { useActivePricing, useUpsertPricing } from '@/hooks/api/useSmartMeter';
 
 const SettingsPage = () => {
   const { toast } = useToast();
