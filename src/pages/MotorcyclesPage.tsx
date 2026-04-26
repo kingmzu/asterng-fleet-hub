@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Search, Plus, Pencil } from 'lucide-react';
+import { Search, Plus, Pencil, Bike, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import StatusBadge from '@/components/StatusBadge';
 import ExportDialog from '@/components/ExportDialog';
 import { useMotorcycles } from '@/hooks/api';
 import { useDebounce } from '@/hooks/useDebounce';
 import { formatNaira } from '@/lib/mockData';
 import MotorcycleFormDialog from '@/components/forms/MotorcycleFormDialog';
+import LiveTrackingPage from '@/pages/LiveTrackingPage';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -54,7 +56,7 @@ const MotorcyclesPage = () => {
   };
 
   return (
-    <div className="space-y-5">
+    <Tabs defaultValue="fleet" className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-foreground">Motorcycle Fleet</h1>
@@ -62,7 +64,14 @@ const MotorcyclesPage = () => {
             {isLoading ? 'Loading...' : `${data?.pagination.total || 0} registered motorcycles`}
           </p>
         </div>
-        <div className="flex gap-2">
+        <TabsList>
+          <TabsTrigger value="fleet" className="gap-2"><Bike className="h-4 w-4" /> Fleet</TabsTrigger>
+          <TabsTrigger value="tracking" className="gap-2"><MapPin className="h-4 w-4" /> Live Tracking</TabsTrigger>
+        </TabsList>
+      </div>
+
+      <TabsContent value="fleet" className="space-y-5 mt-0">
+        <div className="flex justify-end gap-2">
           <ExportDialog
             filteredRows={motorcycles}
             fetchAll={fetchAll}
@@ -72,7 +81,6 @@ const MotorcyclesPage = () => {
           />
           <Button className="gap-2" onClick={openAdd}><Plus className="h-4 w-4" /> Register Bike</Button>
         </div>
-      </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
@@ -167,7 +175,12 @@ const MotorcyclesPage = () => {
       )}
 
       <MotorcycleFormDialog open={formOpen} onOpenChange={setFormOpen} motorcycle={editingBike} />
-    </div>
+      </TabsContent>
+
+      <TabsContent value="tracking" className="mt-0">
+        <LiveTrackingPage />
+      </TabsContent>
+    </Tabs>
   );
 };
 
