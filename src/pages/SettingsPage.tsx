@@ -14,10 +14,56 @@ import { useActivePricing, useUpsertPricing } from '@/hooks/api/useSmartMeter';
 const SettingsPage = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const { data: roles = [] } = useUserRoles();
+  const isAdmin = roles.includes('admin' as any);
+  const { data: activePricing } = useActivePricing();
+  const upsertPricing = useUpsertPricing();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const [pricingForm, setPricingForm] = useState({
+    base_fare: '500',
+    price_per_km: '150',
+    price_per_minute: '30',
+    minimum_fare: '700',
+    rate_multiplier: '1',
+    tier: 'tier_1',
+  });
+
+  useEffect(() => {
+    if (activePricing) {
+      setPricingForm({
+        base_fare: String(activePricing.base_fare),
+        price_per_km: String(activePricing.price_per_km),
+        price_per_minute: String(activePricing.price_per_minute),
+        minimum_fare: String(activePricing.minimum_fare),
+        rate_multiplier: String(activePricing.rate_multiplier),
+        tier: activePricing.tier,
+      });
+    }
+  }, [activePricing]);
+
+  const handleSavePricing = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await upsertPricing.mutateAsync({
+        id: activePricing?.id,
+        tier: pricingForm.tier,
+        base_fare: Number(pricingForm.base_fare),
+        price_per_km: Number(pricingForm.price_per_km),
+        price_per_minute: Number(pricingForm.price_per_minute),
+        minimum_fare: Number(pricingForm.minimum_fare),
+        rate_multiplier: Number(pricingForm.rate_multiplier),
+        is_active: true,
+      } as any);
+      toast({ title: 'Pricing updated', description: 'New rates apply immediately.' });
+    } catch (err: any) {
+      toast({ title: 'Save failed', description: err.message, variant: 'destructive' });
+    }
+  };
+
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
