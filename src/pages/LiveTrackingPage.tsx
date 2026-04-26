@@ -77,13 +77,13 @@ const LiveTrackingPage = () => {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <Badge variant="secondary" className="gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-green-600" /> On Trip · {counts.on_trip}
+          <span className="h-2 w-2 rounded-full" style={{ background: '#16a34a' }} /> On Trip · {counts.on_trip}
         </Badge>
         <Badge variant="secondary" className="gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-yellow-500" /> Online · {counts.online}
+          <span className="h-2 w-2 rounded-full" style={{ background: '#eab308' }} /> Online · {counts.online}
         </Badge>
         <Badge variant="secondary" className="gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-red-600" /> Offline · {counts.offline}
+          <span className="h-2 w-2 rounded-full" style={{ background: '#dc2626' }} /> Offline · {counts.offline}
         </Badge>
       </div>
 
