@@ -81,7 +81,6 @@ const MotorcyclesPage = () => {
           />
           <Button className="gap-2" onClick={openAdd}><Plus className="h-4 w-4" /> Register Bike</Button>
         </div>
-      </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
