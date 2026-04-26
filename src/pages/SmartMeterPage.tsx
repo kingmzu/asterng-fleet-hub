@@ -1,19 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, Polyline } from '@react-google-maps/api';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Play, Pause, Square, MapPin, Plus, FileDown, Loader2 } from 'lucide-react';
+import { Trash2, Play, Pause, Square, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { GOOGLE_MAPS_API_KEY } from '@/config/maps';
+import LeafletMap from '@/components/maps/LeafletMap';
 import { useRiders } from '@/hooks/api/useRiders';
-import { useCurrentUser, useUserRoles } from '@/hooks/api/useAuth';
+import { useCurrentUser } from '@/hooks/api/useAuth';
+import { useRoles } from '@/hooks/api/useRoles';
 import {
   useActivePricing,
-  useStartTrip,
   useUpdateTrip,
   useAddExtra,
   useRemoveExtra,
@@ -21,41 +20,38 @@ import {
   useAddTripPoint,
   useTrips,
 } from '@/hooks/api/useSmartMeter';
+import { usePushRiderLocation } from '@/hooks/api/useRiderLocations';
 import { calcFare, formatDuration, formatNaira, generateReceiptPdf, haversineKm } from '@/lib/smartMeter';
 import { supabase } from '@/integrations/supabase/client';
 
-const containerStyle = { width: '100%', height: '100%' };
-const defaultCenter = { lat: 9.0765, lng: 7.3986 }; // Abuja
+const DEFAULT_CENTER: [number, number] = [9.0765, 7.3986]; // Abuja
 
 type Status = 'idle' | 'active' | 'paused';
 
 const SmartMeterPage = () => {
   const { toast } = useToast();
-  const { isLoaded, loadError } = useJsApiLoader({ id: 'gmaps', googleMapsApiKey: GOOGLE_MAPS_API_KEY });
   const { user } = useCurrentUser();
-  const { data: roles = [] } = useUserRoles();
-  const isAdmin = roles.includes('admin' as any);
-  const isStaff = roles.some((r) => ['admin', 'operations_manager', 'accountant'].includes(r as string));
+  const { isStaff } = useRoles();
 
   const { data: pricing } = useActivePricing();
-  const { data: ridersResp } = useRiders(1, 100, 'all', '');
+  const { data: ridersResp } = useRiders(1, 200, 'all', '');
   const riders = ridersResp?.data || [];
   const { data: recentTrips = [] } = useTrips();
 
-  const startTrip = useStartTrip();
   const updateTrip = useUpdateTrip();
   const addExtra = useAddExtra();
   const removeExtra = useRemoveExtra();
   const addPoint = useAddTripPoint();
+  const pushLocation = usePushRiderLocation();
 
   const [riderId, setRiderId] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [tripId, setTripId] = useState<string | null>(null);
   const { data: extras = [] } = useTripExtras(tripId ?? undefined);
 
-  const [path, setPath] = useState<{ lat: number; lng: number }[]>([]);
-  const [center, setCenter] = useState(defaultCenter);
-  const [currentPos, setCurrentPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [path, setPath] = useState<[number, number][]>([]);
+  const [center, setCenter] = useState<[number, number]>(DEFAULT_CENTER);
+  const [currentPos, setCurrentPos] = useState<[number, number] | null>(null);
   const [distanceKm, setDistanceKm] = useState(0);
   const [activeSeconds, setActiveSeconds] = useState(0);
   const [extraLabel, setExtraLabel] = useState('');
@@ -63,17 +59,16 @@ const SmartMeterPage = () => {
 
   const watchIdRef = useRef<number | null>(null);
   const tickRef = useRef<number | null>(null);
+  const heartbeatRef = useRef<number | null>(null);
   const startedAtRef = useRef<string | null>(null);
   const motorcycleIdRef = useRef<string | null>(null);
 
-  // role-based UX: rider auto-selected; staff can choose any
   const myRider = useMemo(() => riders.find((r) => r.user_id === user?.id), [riders, user]);
   useEffect(() => {
     if (!isStaff && myRider && !riderId) setRiderId(myRider.id);
   }, [isStaff, myRider, riderId]);
 
   const selectedRider = riders.find((r) => r.id === riderId);
-
   const extrasTotal = extras.reduce((s, e) => s + Number(e.amount), 0);
 
   const fare = useMemo(() => {
@@ -90,37 +85,67 @@ const SmartMeterPage = () => {
     });
   }, [pricing, distanceKm, activeSeconds, extrasTotal]);
 
-  // GPS watcher
-  const startGps = () => {
+  // Push location to backend (so live-tracking map sees this rider)
+  const broadcast = (
+    pos: [number, number],
+    accuracy: number | null,
+    heading: number | null,
+    speed: number | null,
+    nextStatus: 'online' | 'on_trip'
+  ) => {
+    if (!riderId) return;
+    pushLocation.mutate({
+      rider_id: riderId,
+      lat: pos[0],
+      lng: pos[1],
+      accuracy,
+      heading,
+      speed,
+      status: nextStatus,
+      current_trip_id: tripId,
+    });
+  };
+
+  const startGps = (statusForPush: 'online' | 'on_trip') => {
     if (!navigator.geolocation) {
       toast({ title: 'GPS unavailable', description: 'Browser geolocation not supported.', variant: 'destructive' });
       return;
     }
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        const p: [number, number] = [pos.coords.latitude, pos.coords.longitude];
         setCurrentPos(p);
         setCenter(p);
         setPath((prev) => {
-          if (prev.length === 0) return [p];
+          if (prev.length === 0) {
+            broadcast(p, pos.coords.accuracy, pos.coords.heading, pos.coords.speed, statusForPush);
+            return [p];
+          }
           const last = prev[prev.length - 1];
-          const d = haversineKm(last, p);
-          if (d < 0.005) return prev; // ignore <5m jitter
+          const d = haversineKm({ lat: last[0], lng: last[1] }, { lat: p[0], lng: p[1] });
+          if (d < 0.005) return prev;
           setDistanceKm((dk) => dk + d);
-          if (tripId) addPoint.mutate({ trip_id: tripId, lat: p.lat, lng: p.lng });
+          if (tripId) addPoint.mutate({ trip_id: tripId, lat: p[0], lng: p[1] });
+          broadcast(p, pos.coords.accuracy, pos.coords.heading, pos.coords.speed, statusForPush);
           return [...prev, p];
         });
       },
-      (err) => {
-        toast({ title: 'GPS error', description: err.message, variant: 'destructive' });
-      },
+      (err) => toast({ title: 'GPS error', description: err.message, variant: 'destructive' }),
       { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
     );
+
+    // Heartbeat in case position barely changes
+    if (heartbeatRef.current) window.clearInterval(heartbeatRef.current);
+    heartbeatRef.current = window.setInterval(() => {
+      if (currentPos) broadcast(currentPos, null, null, null, statusForPush);
+    }, 15_000);
   };
 
   const stopGps = () => {
     if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
     watchIdRef.current = null;
+    if (heartbeatRef.current) window.clearInterval(heartbeatRef.current);
+    heartbeatRef.current = null;
   };
 
   const startTimer = () => {
@@ -134,25 +159,44 @@ const SmartMeterPage = () => {
 
   useEffect(() => () => { stopGps(); stopTimer(); }, []);
 
+  // Auto-start "online" presence ping for rider when idle
+  useEffect(() => {
+    if (status !== 'idle') return;
+    if (!riderId) return;
+    if (!navigator.geolocation) return;
+    const id = navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const p: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        setCenter(p);
+        pushLocation.mutate({
+          rider_id: riderId,
+          lat: p[0],
+          lng: p[1],
+          accuracy: pos.coords.accuracy,
+          heading: null,
+          speed: null,
+          status: 'online',
+          current_trip_id: null,
+        });
+      },
+      () => {},
+      { enableHighAccuracy: false, timeout: 8000 }
+    );
+    return () => { /* one-shot, nothing to clear */ void id; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [riderId, status]);
+
   const handleStart = async () => {
-    if (!riderId) {
-      toast({ title: 'Select a rider', description: 'Pick a rider before starting.', variant: 'destructive' });
-      return;
-    }
-    if (!pricing) {
-      toast({ title: 'No active pricing', description: 'Ask an admin to set pricing.', variant: 'destructive' });
-      return;
-    }
-    // get rider bike
+    if (!riderId) { toast({ title: 'Select a rider', variant: 'destructive' }); return; }
+    if (!pricing) { toast({ title: 'No active pricing', description: 'Ask an admin to set pricing.', variant: 'destructive' }); return; }
     const rider = riders.find((r) => r.id === riderId);
     motorcycleIdRef.current = rider?.assigned_bike_id ?? null;
 
-    // get start position once before insert
-    let startPos: { lat: number; lng: number } | null = null;
+    let startPos: [number, number] | null = null;
     try {
       startPos = await new Promise((resolve) => {
         navigator.geolocation.getCurrentPosition(
-          (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+          (p) => resolve([p.coords.latitude, p.coords.longitude]),
           () => resolve(null),
           { enableHighAccuracy: true, timeout: 8000 }
         );
@@ -168,8 +212,8 @@ const SmartMeterPage = () => {
         status: 'active',
         started_at: startedAtRef.current,
         started_by: user?.id,
-        start_lat: startPos?.lat,
-        start_lng: startPos?.lng,
+        start_lat: startPos?.[0],
+        start_lng: startPos?.[1],
         pricing_tier: pricing.tier,
         rate_multiplier: Number(pricing.rate_multiplier),
         minimum_fare: Number(pricing.minimum_fare),
@@ -178,17 +222,25 @@ const SmartMeterPage = () => {
       })
       .select()
       .single();
-    if (error) {
-      toast({ title: 'Could not start', description: error.message, variant: 'destructive' });
-      return;
-    }
+    if (error) { toast({ title: 'Could not start', description: error.message, variant: 'destructive' }); return; }
     setTripId(data.id);
     setPath(startPos ? [startPos] : []);
     setDistanceKm(0);
     setActiveSeconds(0);
     setStatus('active');
-    if (startPos) setCenter(startPos);
-    startGps();
+    if (startPos) {
+      setCenter(startPos);
+      setCurrentPos(startPos);
+      pushLocation.mutate({
+        rider_id: riderId,
+        lat: startPos[0],
+        lng: startPos[1],
+        accuracy: null, heading: null, speed: null,
+        status: 'on_trip',
+        current_trip_id: data.id,
+      });
+    }
+    startGps('on_trip');
     startTimer();
     toast({ title: 'Ride started', description: 'GPS tracking active.' });
   };
@@ -200,7 +252,7 @@ const SmartMeterPage = () => {
       setStatus('paused');
       if (tripId) await updateTrip.mutateAsync({ id: tripId, data: { status: 'paused' } });
     } else if (status === 'paused') {
-      startGps();
+      startGps('on_trip');
       startTimer();
       setStatus('active');
       if (tripId) await updateTrip.mutateAsync({ id: tripId, data: { status: 'active' } });
@@ -218,8 +270,8 @@ const SmartMeterPage = () => {
       data: {
         status: 'completed',
         ended_at: endedAt,
-        end_lat: endPos?.lat,
-        end_lng: endPos?.lng,
+        end_lat: endPos?.[0],
+        end_lng: endPos?.[1],
         active_duration_seconds: activeSeconds,
         distance_km: distanceKm,
         base_fare: fare.baseFare,
@@ -230,7 +282,17 @@ const SmartMeterPage = () => {
       },
     });
 
-    // PDF receipt
+    if (riderId && endPos) {
+      pushLocation.mutate({
+        rider_id: riderId,
+        lat: endPos[0],
+        lng: endPos[1],
+        accuracy: null, heading: null, speed: null,
+        status: 'online',
+        current_trip_id: null,
+      });
+    }
+
     generateReceiptPdf({
       tripId,
       riderName: selectedRider?.full_name || 'Rider',
@@ -265,6 +327,13 @@ const SmartMeterPage = () => {
 
   const meterDisabled = status === 'idle';
 
+  const markers = useMemo(() => {
+    const list: any[] = [];
+    if (path[0]) list.push({ id: 'start', position: path[0], status: 'start' as const });
+    if (currentPos && status !== 'idle') list.push({ id: 'cur', position: currentPos, status: 'current' as const });
+    return list;
+  }, [path, currentPos, status]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -280,28 +349,16 @@ const SmartMeterPage = () => {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-5">
-        {/* Map */}
         <Card className="overflow-hidden lg:col-span-3 h-[60vh] min-h-[400px]">
-          {loadError ? (
-            <div className="flex h-full items-center justify-center text-sm text-destructive p-4 text-center">
-              Failed to load map. Check your Google Maps API key restrictions.
-            </div>
-          ) : !isLoaded ? (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          ) : (
-            <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={15}>
-              {path[0] && <Marker position={path[0]} label="A" />}
-              {currentPos && status !== 'idle' && <Marker position={currentPos} />}
-              {path.length > 1 && (
-                <Polyline path={path} options={{ strokeColor: '#f97316', strokeWeight: 4 }} />
-              )}
-            </GoogleMap>
-          )}
+          <LeafletMap
+            center={center}
+            zoom={15}
+            markers={markers}
+            path={path}
+            followCenter={status !== 'idle'}
+          />
         </Card>
 
-        {/* Meter */}
         <div className="lg:col-span-2 space-y-4">
           <Card className="p-5 space-y-4">
             <div>
@@ -365,24 +422,11 @@ const SmartMeterPage = () => {
             )}
           </Card>
 
-          {/* Extras */}
           <Card className="p-5 space-y-3">
             <h3 className="font-semibold text-sm">Extras</h3>
             <div className="flex gap-2">
-              <Input
-                placeholder="Label (e.g. Luggage)"
-                value={extraLabel}
-                onChange={(e) => setExtraLabel(e.target.value)}
-                disabled={meterDisabled}
-              />
-              <Input
-                type="number"
-                placeholder="₦"
-                className="w-24"
-                value={extraAmount}
-                onChange={(e) => setExtraAmount(e.target.value)}
-                disabled={meterDisabled}
-              />
+              <Input placeholder="Label (e.g. Luggage)" value={extraLabel} onChange={(e) => setExtraLabel(e.target.value)} disabled={meterDisabled} />
+              <Input type="number" placeholder="₦" className="w-24" value={extraAmount} onChange={(e) => setExtraAmount(e.target.value)} disabled={meterDisabled} />
               <Button size="icon" onClick={handleAddExtra} disabled={meterDisabled}>
                 <Plus className="h-4 w-4" />
               </Button>
@@ -412,7 +456,6 @@ const SmartMeterPage = () => {
         </div>
       </div>
 
-      {/* Recent trips */}
       <Card className="p-5">
         <h3 className="font-semibold mb-3">Recent Trips</h3>
         <div className="overflow-x-auto">
@@ -435,7 +478,7 @@ const SmartMeterPage = () => {
                   <td>{Number(t.distance_km).toFixed(2)} km</td>
                   <td>{formatDuration(t.active_duration_seconds || 0)}</td>
                   <td><Badge variant={t.status === 'completed' ? 'default' : 'secondary'}>{t.status}</Badge></td>
-                  <td className="text-right font-medium">{formatNaira(Number(t.total_fare))}</td>
+                  <td className="text-right font-medium">{formatNaira(Number(t.total_fare || 0))}</td>
                 </tr>
               ))}
               {recentTrips.length === 0 && (

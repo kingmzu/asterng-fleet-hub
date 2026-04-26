@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useLogout, useCurrentUser, useUserProfile } from '@/hooks/api';
 import { useConversations, useRealtimeMessages } from '@/hooks/api/useMessaging';
+import { useRoles } from '@/hooks/api/useRoles';
 import { useTheme } from '@/components/ThemeProvider';
 import {
   LayoutDashboard,
@@ -23,16 +24,16 @@ import {
 import logoMark from '@/assets/asterng-logo-mark.png';
 import { Badge } from '@/components/ui/badge';
 
-const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/riders', label: 'Riders', icon: Users },
-  { to: '/motorcycles', label: 'Motorcycles', icon: Bike },
-  { to: '/smart-meter', label: 'Smart Meter', icon: Gauge },
-  { to: '/remittances', label: 'Remittances', icon: Wallet },
-  { to: '/expenses', label: 'Expenses', icon: Receipt },
-  { to: '/compliance', label: 'Compliance', icon: Shield },
-  { to: '/messages', label: 'Messages', icon: MessageSquare },
-  { to: '/settings', label: 'Settings', icon: Settings },
+const allNavItems = [
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, staffOnly: true },
+  { to: '/riders', label: 'Riders', icon: Users, staffOnly: true },
+  { to: '/motorcycles', label: 'Motorcycles', icon: Bike, staffOnly: true },
+  { to: '/smart-meter', label: 'Smart Meter', icon: Gauge, staffOnly: false },
+  { to: '/remittances', label: 'Remittances', icon: Wallet, staffOnly: true },
+  { to: '/expenses', label: 'Expenses', icon: Receipt, staffOnly: true },
+  { to: '/compliance', label: 'Compliance', icon: Shield, staffOnly: true },
+  { to: '/messages', label: 'Messages', icon: MessageSquare, staffOnly: true },
+  { to: '/settings', label: 'Settings', icon: Settings, staffOnly: true },
 ];
 
 interface AppLayoutProps {
@@ -46,14 +47,17 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const { mutate: logout } = useLogout();
   const { user } = useCurrentUser();
   const { data: profile } = useUserProfile();
+  const { isStaff } = useRoles();
   const { data: conversations = [] } = useConversations();
   const { resolved, setTheme } = useTheme();
   useRealtimeMessages();
 
+  const navItems = allNavItems.filter((i) => isStaff || !i.staffOnly);
+
   const totalUnread = conversations.reduce((s, c) => s + (c.unread_count ?? 0), 0);
   const displayName = profile?.full_name || user?.email || 'User';
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
-  const currentPage = navItems.find((item) => item.to === location.pathname)?.label || 'Dashboard';
+  const currentPage = navItems.find((item) => item.to === location.pathname)?.label || 'Smart Meter';
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -64,13 +68,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar text-sidebar-foreground transition-transform duration-300 lg:static lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Logo — kept in white container so brand colors are preserved in any theme */}
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
           <div className="flex h-10 w-10 items-center justify-center">
             <img src={logoMark} alt="ASTERNG logo" className="h-full w-full object-contain" />
@@ -87,7 +89,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           </button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
           {navItems.map((item) => (
             <NavLink
@@ -112,26 +113,28 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           ))}
         </nav>
 
-        {/* User section */}
         <div className="border-t border-sidebar-border p-4">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => { setSidebarOpen(false); navigate('/profile'); }}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground hover:ring-2 hover:ring-sidebar-ring transition-all"
-            >
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-              ) : (
-                initials
-              )}
-            </button>
-            <button
-              onClick={() => { setSidebarOpen(false); navigate('/profile'); }}
-              className="flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
-            >
+            {isStaff ? (
+              <button
+                onClick={() => { setSidebarOpen(false); navigate('/profile'); }}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground hover:ring-2 hover:ring-sidebar-ring transition-all"
+              >
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+                ) : (
+                  initials
+                )}
+              </button>
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">
+                {initials}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
               <p className="truncate text-sm font-medium text-sidebar-accent-foreground">{displayName}</p>
               <p className="truncate text-xs text-sidebar-foreground/60">{user?.email}</p>
-            </button>
+            </div>
             <button
               onClick={() => logout(undefined, { onSuccess: () => navigate('/login') })}
               className="rounded-md p-1 text-sidebar-foreground/50 hover:text-sidebar-accent-foreground"
@@ -143,7 +146,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         </div>
       </aside>
 
-      {/* Main */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-14 items-center gap-4 border-b border-border bg-card px-4 lg:px-6">
           <button
