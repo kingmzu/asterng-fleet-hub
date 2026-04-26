@@ -18,6 +18,7 @@ import {
   Settings,
   Sun,
   Moon,
+  Gauge,
 } from 'lucide-react';
 import logoMark from '@/assets/asterng-logo-mark.png';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/riders', label: 'Riders', icon: Users },
   { to: '/motorcycles', label: 'Motorcycles', icon: Bike },
+  { to: '/smart-meter', label: 'Smart Meter', icon: Gauge },
   { to: '/remittances', label: 'Remittances', icon: Wallet },
   { to: '/expenses', label: 'Expenses', icon: Receipt },
   { to: '/compliance', label: 'Compliance', icon: Shield },

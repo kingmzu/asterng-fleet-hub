@@ -360,7 +360,7 @@ const SmartMeterPage = () => {
                 <div className="flex justify-between"><span className="text-muted-foreground">Time cost</span><span>{formatNaira(fare.timeCost)}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Extras</span><span>{formatNaira(fare.extras)}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Multiplier</span><span>x{pricing?.rate_multiplier}</span></div>
-                {fare.appliedMinimum && <div className="text-[11px] text-amber-600">Minimum fare applied</div>}
+                {fare.appliedMinimum && <div className="text-[11px] text-primary">Minimum fare applied</div>}
               </div>
             )}
           </Card>

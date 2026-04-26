@@ -16,6 +16,7 @@ import CompliancePage from "@/pages/CompliancePage";
 import ProfilePage from "@/pages/ProfilePage";
 import SettingsPage from "@/pages/SettingsPage";
 import MessagesPage from "@/pages/MessagesPage";
+import SmartMeterPage from "@/pages/SmartMeterPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/" element={wrap(<Dashboard />)} />
             <Route path="/riders" element={wrap(<RidersPage />)} />
             <Route path="/motorcycles" element={wrap(<MotorcyclesPage />)} />
+            <Route path="/smart-meter" element={wrap(<SmartMeterPage />)} />
             <Route path="/remittances" element={wrap(<RemittancesPage />)} />
             <Route path="/expenses" element={wrap(<ExpensesPage />)} />
             <Route path="/compliance" element={wrap(<CompliancePage />)} />
