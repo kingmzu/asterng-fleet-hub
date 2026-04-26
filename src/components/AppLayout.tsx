@@ -70,7 +70,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       >
         {/* Logo — kept in white container so brand colors are preserved in any theme */}
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center">
             <img src={logoMark} alt="ASTERNG logo" className="h-full w-full object-contain" />
           </div>
           <div>
@@ -150,7 +150,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white p-0.5 shadow-sm ring-1 ring-border lg:hidden">
+          <div className="flex h-8 w-8 items-center justify-center lg:hidden">
             <img src={logoMark} alt="ASTERNG" className="h-full w-full object-contain" />
           </div>
           <h2 className="font-display text-lg font-semibold text-foreground">{currentPage}</h2>
