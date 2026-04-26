@@ -63,7 +63,7 @@ const LoginPage = () => {
         <div className="rounded-3xl border border-border bg-card/95 p-8 shadow-2xl backdrop-blur-sm sm:p-10">
           {/* Brand */}
           <div className="mb-8 flex flex-col items-center text-center">
-            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-3 shadow-md ring-1 ring-border">
+            <div className="mb-4 flex h-20 w-20 items-center justify-center">
               <img src={logoMark} alt="ASTERNG" className="h-full w-full object-contain" />
             </div>
             <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
