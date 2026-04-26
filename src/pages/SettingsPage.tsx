@@ -199,6 +199,56 @@ const SettingsPage = () => {
           </Button>
         </form>
       </Card>
+
+      {/* Smart Meter Pricing — admin only */}
+      {isAdmin && (
+        <Card className="p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary"><Gauge className="h-5 w-5" /></div>
+            <div>
+              <h2 className="font-display text-lg font-semibold">Smart Meter Pricing</h2>
+              <p className="text-xs text-muted-foreground">Global active fare rates. Applied to all new trips.</p>
+            </div>
+          </div>
+          <form onSubmit={handleSavePricing} className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Pricing Tier</Label>
+              <Select value={pricingForm.tier} onValueChange={(v) => setPricingForm((f) => ({ ...f, tier: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tier_1">Tier 1 (Standard)</SelectItem>
+                  <SelectItem value="tier_2">Tier 2 (Premium)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Base Fare (₦)</Label>
+              <Input type="number" value={pricingForm.base_fare} onChange={(e) => setPricingForm((f) => ({ ...f, base_fare: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Price per KM (₦)</Label>
+              <Input type="number" value={pricingForm.price_per_km} onChange={(e) => setPricingForm((f) => ({ ...f, price_per_km: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Price per Minute (₦)</Label>
+              <Input type="number" value={pricingForm.price_per_minute} onChange={(e) => setPricingForm((f) => ({ ...f, price_per_minute: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Minimum Fare (₦)</Label>
+              <Input type="number" value={pricingForm.minimum_fare} onChange={(e) => setPricingForm((f) => ({ ...f, minimum_fare: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Rate Multiplier</Label>
+              <Input type="number" step="0.1" value={pricingForm.rate_multiplier} onChange={(e) => setPricingForm((f) => ({ ...f, rate_multiplier: e.target.value }))} />
+            </div>
+            <div className="sm:col-span-2">
+              <Button type="submit" disabled={upsertPricing.isPending}>
+                {upsertPricing.isPending ? 'Saving...' : 'Save Pricing'}
+              </Button>
+            </div>
+          </form>
+        </Card>
+      )}
     </div>
   );
 };
