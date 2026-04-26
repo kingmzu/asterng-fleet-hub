@@ -542,6 +542,45 @@ export type Database = {
           },
         ]
       }
+      rider_locations: {
+        Row: {
+          accuracy: number | null
+          current_trip_id: string | null
+          heading: number | null
+          last_seen_at: string
+          lat: number
+          lng: number
+          rider_id: string
+          speed: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accuracy?: number | null
+          current_trip_id?: string | null
+          heading?: number | null
+          last_seen_at?: string
+          lat: number
+          lng: number
+          rider_id: string
+          speed?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accuracy?: number | null
+          current_trip_id?: string | null
+          heading?: number | null
+          last_seen_at?: string
+          lat?: number
+          lng?: number
+          rider_id?: string
+          speed?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       riders: {
         Row: {
           assigned_bike_id: string | null
