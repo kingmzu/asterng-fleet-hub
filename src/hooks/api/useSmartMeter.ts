@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
@@ -62,7 +63,6 @@ export const useActivateTier = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      // deactivate all then activate target
       await supabase.from('pricing_settings').update({ is_active: false }).neq('id', id);
       const { error } = await supabase.from('pricing_settings').update({ is_active: true }).eq('id', id);
       if (error) throw error;
@@ -71,15 +71,25 @@ export const useActivateTier = () => {
   });
 };
 
-export const useStartTrip = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (payload: TablesInsert<'trips'>) => {
-      const { data, error } = await supabase.from('trips').insert(payload).select().single();
+/** Find the rider's currently-active or paused trip (for resuming after refresh). */
+export const useActiveTrip = (riderId?: string) => {
+  return useQuery({
+    queryKey: ['trips', 'active', riderId],
+    queryFn: async () => {
+      if (!riderId) return null;
+      const { data, error } = await supabase
+        .from('trips')
+        .select('*')
+        .eq('rider_id', riderId)
+        .in('status', ['active', 'paused'])
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trips'] }),
+    enabled: !!riderId,
+    staleTime: 5_000,
   });
 };
 
@@ -91,23 +101,47 @@ export const useUpdateTrip = () => {
       if (error) throw error;
       return row;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trips'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trips'] });
+    },
   });
 };
 
-export const useTrips = (riderId?: string) => {
+/** Paginated trip list with realtime invalidation. 20 per page. */
+export const useTripsPaginated = (
+  page: number,
+  pageSize: number,
+  riderId?: string,
+) => {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    const ch = supabase
+      .channel('trips_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trips' }, () => {
+        qc.invalidateQueries({ queryKey: ['trips'] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [qc]);
+
   return useQuery({
-    queryKey: ['trips', riderId ?? 'all'],
+    queryKey: ['trips', 'paginated', page, pageSize, riderId ?? 'all'],
     queryFn: async () => {
+      const from = (page - 1) * pageSize;
       let q = supabase
         .from('trips')
-        .select('*, riders:rider_id(full_name), motorcycles:motorcycle_id(plate_number)')
+        .select('*, riders:rider_id(full_name), motorcycles:motorcycle_id(plate_number)', { count: 'exact' })
         .order('started_at', { ascending: false })
-        .limit(50);
+        .range(from, from + pageSize - 1);
       if (riderId) q = q.eq('rider_id', riderId);
-      const { data, error } = await q;
+      const { data, error, count } = await q;
       if (error) throw error;
-      return data || [];
+      return {
+        rows: data || [],
+        total: count || 0,
+        pages: Math.max(1, Math.ceil((count || 0) / pageSize)),
+      };
     },
   });
 };
