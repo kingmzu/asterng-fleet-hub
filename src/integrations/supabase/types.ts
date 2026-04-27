@@ -438,6 +438,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           avatar_url: string | null
           created_at: string
           email: string | null
@@ -445,11 +448,15 @@ export type Database = {
           home_address: string | null
           id: string
           phone_number: string | null
+          requested_role: string | null
           theme_preference: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -457,11 +464,15 @@ export type Database = {
           home_address?: string | null
           id?: string
           phone_number?: string | null
+          requested_role?: string | null
           theme_preference?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -469,6 +480,7 @@ export type Database = {
           home_address?: string | null
           id?: string
           phone_number?: string | null
+          requested_role?: string | null
           theme_preference?: string
           updated_at?: string
           user_id?: string
@@ -919,6 +931,7 @@ export type Database = {
         Args: { p_rider_id: string }
         Returns: number
       }
+      get_founding_admin_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -927,6 +940,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_manager: { Args: { _user_id: string }; Returns: boolean }
+      is_approved: { Args: { _user_id: string }; Returns: boolean }
       is_conversation_member: {
         Args: { _conv: string; _user: string }
         Returns: boolean
