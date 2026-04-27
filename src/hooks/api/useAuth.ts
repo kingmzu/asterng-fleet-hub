@@ -17,6 +17,7 @@ interface SignupPayload {
   email: string;
   password: string;
   fullName: string;
+  requestedRole: 'admin' | 'operations_manager' | 'rider';
 }
 
 export const useLogin = () => {
@@ -44,7 +45,10 @@ export const useSignup = () => {
         email: payload.email,
         password: payload.password,
         options: {
-          data: { full_name: payload.fullName },
+          data: {
+            full_name: payload.fullName,
+            requested_role: payload.requestedRole,
+          },
           emailRedirectTo: window.location.origin,
         },
       });
@@ -102,12 +106,12 @@ export const useUserProfile = () => {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
   });
 };
 
@@ -126,6 +130,6 @@ export const useUserRoles = () => {
       if (error) throw error;
       return data?.map((r) => r.role) || [];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
   });
 };
