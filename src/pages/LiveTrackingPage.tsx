@@ -6,7 +6,7 @@ import { Loader2, MapPin, Clock, Route, Wallet } from 'lucide-react';
 import LeafletMap, { LeafletMarker } from '@/components/maps/LeafletMap';
 import { useRiderLocations } from '@/hooks/api/useRiderLocations';
 import { useRiders } from '@/hooks/api/useRiders';
-import { useTrips, useTripPoints, useActivePricing } from '@/hooks/api/useSmartMeter';
+import { useTripsPaginated, useTripPoints, useActivePricing } from '@/hooks/api/useSmartMeter';
 import { calcFare, formatDuration, formatNaira } from '@/lib/smartMeter';
 
 const ABUJA: [number, number] = [9.0765, 7.3986];
@@ -15,7 +15,8 @@ const LiveTrackingPage = () => {
   const { data: locations = [], isLoading } = useRiderLocations();
   const { data: ridersResp } = useRiders(1, 200, 'all', '');
   const riders = ridersResp?.data || [];
-  const { data: trips = [] } = useTrips();
+  const { data: tripsResp } = useTripsPaginated(1, 100);
+  const trips = tripsResp?.rows || [];
   const { data: pricing } = useActivePricing();
 
   const [selectedRiderId, setSelectedRiderId] = useState<string | null>(null);
