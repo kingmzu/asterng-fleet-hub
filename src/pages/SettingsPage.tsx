@@ -10,6 +10,7 @@ import { useTheme, Theme } from '@/components/ThemeProvider';
 import { Sun, Moon, Monitor, Lock, Palette, Gauge } from 'lucide-react';
 import { useUserRoles } from '@/hooks/api/useAuth';
 import { useActivePricing, useUpsertPricing } from '@/hooks/api/useSmartMeter';
+import ApprovalsPanel from '@/components/ApprovalsPanel';
 
 const SettingsPage = () => {
   const { toast } = useToast();
@@ -249,6 +250,8 @@ const SettingsPage = () => {
           </form>
         </Card>
       )}
+
+      {isAdmin && <ApprovalsPanel />}
     </div>
   );
 };
