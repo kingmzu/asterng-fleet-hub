@@ -17,6 +17,7 @@ import ProfilePage from "@/pages/ProfilePage";
 import SettingsPage from "@/pages/SettingsPage";
 import MessagesPage from "@/pages/MessagesPage";
 import SmartMeterPage from "@/pages/SmartMeterPage";
+import PendingApprovalPage from "@/pages/PendingApprovalPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/pending-approval" element={<PendingApprovalPage />} />
             <Route path="/" element={wrap(<Dashboard />, { staffOnly: true })} />
             <Route path="/riders" element={wrap(<RidersPage />, { staffOnly: true })} />
             <Route path="/motorcycles" element={wrap(<MotorcyclesPage />, { staffOnly: true })} />

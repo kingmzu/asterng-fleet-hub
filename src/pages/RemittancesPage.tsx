@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Download, Pencil } from 'lucide-react';
+import { Search, Plus, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,7 +8,19 @@ import { useRemittances, useRemittanceStats, useUserRoles } from '@/hooks/api';
 import { formatNaira } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import RemittanceFormDialog from '@/components/forms/RemittanceFormDialog';
+import ExportDialog from '@/components/ExportDialog';
+import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
+
+const remittanceColumns = [
+  { header: 'Date', accessor: (r: any) => r.remittance_date },
+  { header: 'Rider', accessor: (r: any) => r.rider_name },
+  { header: 'Amount (₦)', accessor: (r: any) => Number(r.amount) },
+  { header: 'Type', accessor: (r: any) => r.type },
+  { header: 'Method', accessor: (r: any) => r.payment_method },
+  { header: 'Status', accessor: (r: any) => r.status },
+  { header: 'Reference', accessor: (r: any) => r.reference_note || '' },
+];
 
 const RemittancesPage = () => {
   const [page, setPage] = useState(1);
@@ -45,7 +57,21 @@ const RemittancesPage = () => {
           <p className="text-sm text-muted-foreground">Track daily and weekly rider payments</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" disabled={isLoading}><Download className="h-4 w-4" /> Export</Button>
+          <ExportDialog
+            filteredRows={remittances as any[]}
+            fetchAll={async () => {
+              const { data, error } = await supabase
+                .from('remittances')
+                .select('*, riders!inner(full_name)')
+                .order('remittance_date', { ascending: false });
+              if (error) throw error;
+              return (data || []).map((r: any) => ({ ...r, rider_name: r.riders?.full_name || 'Unknown' }));
+            }}
+            columns={remittanceColumns}
+            fileBase="remittances"
+            title="Remittance Report"
+            disabled={isLoading}
+          />
           <Button className="gap-2" onClick={openCreate}><Plus className="h-4 w-4" /> Log Payment</Button>
         </div>
       </div>
