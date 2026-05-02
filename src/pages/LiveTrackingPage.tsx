@@ -88,7 +88,7 @@ const LiveTrackingPage = () => {
         </Badge>
       </div>
 
-      <Card className="overflow-hidden h-[70vh] min-h-[420px] relative">
+      <Card className="overflow-hidden relative h-[55vh] min-h-[320px] max-h-[640px] sm:h-[60vh]">
         {isLoading ? (
           <div className="flex h-full items-center justify-center text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin" />
@@ -97,8 +97,8 @@ const LiveTrackingPage = () => {
           <LeafletMap center={center} zoom={13} markers={markers} />
         )}
         {!isLoading && markers.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="rounded-lg bg-card/90 px-4 py-3 text-sm text-muted-foreground shadow">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-4">
+            <div className="rounded-lg bg-card/90 px-4 py-3 text-center text-sm text-muted-foreground shadow">
               No active rider locations yet. Riders will appear once they start sharing GPS.
             </div>
           </div>

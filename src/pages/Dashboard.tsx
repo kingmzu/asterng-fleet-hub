@@ -18,11 +18,19 @@ import {
   useRemittances,
   useOutstandingRiders,
   useExpiryAlerts,
+  useUserProfile,
+  useCurrentUser,
 } from '@/hooks/api';
 import { formatNaira } from '@/lib/mockData';
 
 const Dashboard = () => {
   const { toast } = useToast();
+  const { data: profile } = useUserProfile();
+  const { user } = useCurrentUser();
+  const firstName =
+    (profile?.full_name?.trim().split(/\s+/)[0]) ||
+    (user?.email?.split('@')[0]) ||
+    'there';
 
   const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats();
   const { data: trends, isLoading: trendsLoading } = useRevenueTrends(12);
@@ -43,7 +51,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-foreground">Welcome back, Admin</h1>
+        <h1 className="font-display text-2xl font-bold text-foreground">Welcome back, {firstName}.</h1>
         <p className="text-sm text-muted-foreground">Here's your fleet overview for today.</p>
       </div>
 

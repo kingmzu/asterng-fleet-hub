@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useLogout, useCurrentUser, useUserProfile } from '@/hooks/api';
+import { useAvatarUrl } from '@/hooks/api/useProfile';
 import { useConversations, useRealtimeMessages } from '@/hooks/api/useMessaging';
 import { useRoles } from '@/hooks/api/useRoles';
 import { useTheme } from '@/components/ThemeProvider';
@@ -47,6 +48,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const { mutate: logout } = useLogout();
   const { user } = useCurrentUser();
   const { data: profile } = useUserProfile();
+  const { data: avatarSignedUrl } = useAvatarUrl(profile?.avatar_url);
   const { isStaff } = useRoles();
   const { data: conversations = [] } = useConversations();
   const { resolved, setTheme } = useTheme();
@@ -118,10 +120,10 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             {isStaff ? (
               <button
                 onClick={() => { setSidebarOpen(false); navigate('/profile'); }}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground hover:ring-2 hover:ring-sidebar-ring transition-all"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground hover:ring-2 hover:ring-sidebar-ring transition-all overflow-hidden"
               >
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+                {avatarSignedUrl ? (
+                  <img src={avatarSignedUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : (
                   initials
                 )}

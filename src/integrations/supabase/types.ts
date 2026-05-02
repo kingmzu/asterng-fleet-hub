@@ -931,6 +931,26 @@ export type Database = {
         Args: { p_rider_id: string }
         Returns: number
       }
+      get_approved_chat_users: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          role: string
+          user_id: string
+        }[]
+      }
+      get_approved_users_for_onboarding: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          has_rider_record: boolean
+          phone_number: string
+          requested_role: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

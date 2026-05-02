@@ -2,32 +2,48 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export const usePendingProfiles = () => {
+const profilesByStatus = (status: 'pending' | 'approved' | 'rejected') => async () => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('approval_status', status)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+};
+
+const useProfilesQuery = (status: 'pending' | 'approved' | 'rejected') => {
   const qc = useQueryClient();
   const q = useQuery({
-    queryKey: ['profiles', 'pending'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('approval_status', 'pending')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
+    queryKey: ['profiles', status],
+    queryFn: profilesByStatus(status),
   });
-
   useEffect(() => {
     const ch = supabase
-      .channel('profiles_pending')
+      .channel(`profiles_${status}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-        qc.invalidateQueries({ queryKey: ['profiles', 'pending'] });
+        qc.invalidateQueries({ queryKey: ['profiles', status] });
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [qc]);
-
+  }, [qc, status]);
   return q;
+};
+
+export const usePendingProfiles = () => useProfilesQuery('pending');
+export const useApprovedProfiles = () => useProfilesQuery('approved');
+
+/** Approved users not yet onboarded as riders — for the rider prefill dropdown */
+export const useApprovedUsersForOnboarding = () => {
+  return useQuery({
+    queryKey: ['approved-users', 'for-onboarding'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_approved_users_for_onboarding');
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 30_000,
+  });
 };
 
 export const useApproveProfile = () => {
@@ -53,7 +69,8 @@ export const useApproveProfile = () => {
       if (rErr) throw rErr;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['profiles', 'pending'] });
+      qc.invalidateQueries({ queryKey: ['profiles'] });
+      qc.invalidateQueries({ queryKey: ['approved-users'] });
       qc.invalidateQueries({ queryKey: ['riders'] });
     },
   });
@@ -74,6 +91,6 @@ export const useRejectProfile = () => {
         .eq('user_id', userId);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['profiles', 'pending'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['profiles'] }),
   });
 };

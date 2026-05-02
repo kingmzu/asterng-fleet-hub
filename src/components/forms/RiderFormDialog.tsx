@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
+import { UserPlus2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useCreateRider, useUpdateRider, useDeleteRider } from '@/hooks/api';
+import { useApprovedUsersForOnboarding } from '@/hooks/api/useApprovals';
 import KycDocumentsSection from '@/components/KycDocumentsSection';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -43,9 +45,16 @@ const RiderFormDialog = ({ open, onOpenChange, rider, canDelete = false }: Props
   const createRider = useCreateRider();
   const updateRider = useUpdateRider();
   const deleteRider = useDeleteRider();
+  const { data: approvedUsers = [] } = useApprovedUsersForOnboarding();
+  const [linkedUserId, setLinkedUserId] = useState<string>('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [kycPct, setKycPct] = useState(0);
   const [kycHasRequired, setKycHasRequired] = useState(false);
+
+  // Approved users that don't yet have a rider record (for prefill)
+  const onboardable = (approvedUsers as any[]).filter(
+    (u) => !u.has_rider_record && (u.requested_role === 'rider' || u.requested_role == null)
+  );
 
   const form = useForm<RiderFormValues>({
     resolver: zodResolver(riderSchema),
@@ -68,14 +77,28 @@ const RiderFormDialog = ({ open, onOpenChange, rider, canDelete = false }: Props
         police_station_name: rider.police_station_name || '',
         police_case_reference: rider.police_case_reference || '',
       });
+      setLinkedUserId('');
     } else {
       form.reset();
+      setLinkedUserId('');
     }
   }, [rider, open]);
 
+  const handlePrefillUser = (userId: string) => {
+    setLinkedUserId(userId);
+    const u = onboardable.find((x) => x.user_id === userId);
+    if (!u) return;
+    form.reset({
+      ...form.getValues(),
+      full_name: u.full_name || '',
+      email: u.email || '',
+      phone_number: u.phone_number || form.getValues('phone_number') || '',
+    });
+  };
+
   const onSubmit = async (values: RiderFormValues) => {
     try {
-      const payload = {
+      const payload: any = {
         full_name: values.full_name,
         phone_number: values.phone_number,
         national_id: values.national_id,
@@ -88,6 +111,7 @@ const RiderFormDialog = ({ open, onOpenChange, rider, canDelete = false }: Props
         police_station_name: values.police_station_name || null,
         police_case_reference: values.police_case_reference || null,
       };
+      if (!isEdit && linkedUserId) payload.user_id = linkedUserId;
       if (isEdit) {
         await updateRider.mutateAsync({ id: rider.id, data: payload });
         toast({ title: 'Rider updated successfully' });
@@ -122,6 +146,31 @@ const RiderFormDialog = ({ open, onOpenChange, rider, canDelete = false }: Props
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {!isEdit && onboardable.length > 0 && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-primary">
+                  <UserPlus2 className="h-3.5 w-3.5" />
+                  Prefill from approved user
+                </div>
+                <Select value={linkedUserId || undefined} onValueChange={handlePrefillUser}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select an approved user…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {onboardable.map((u) => (
+                      <SelectItem key={u.user_id} value={u.user_id}>
+                        {u.full_name} {u.email ? `· ${u.email}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {linkedUserId && (
+                  <p className="text-[11px] text-muted-foreground">
+                    This rider record will be linked to the selected user account.
+                  </p>
+                )}
+              </div>
+            )}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField control={form.control} name="full_name" render={({ field }) => (
                 <FormItem><FormLabel>Full Name *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
