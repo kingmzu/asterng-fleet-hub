@@ -77,14 +77,28 @@ const RiderFormDialog = ({ open, onOpenChange, rider, canDelete = false }: Props
         police_station_name: rider.police_station_name || '',
         police_case_reference: rider.police_case_reference || '',
       });
+      setLinkedUserId('');
     } else {
       form.reset();
+      setLinkedUserId('');
     }
   }, [rider, open]);
 
+  const handlePrefillUser = (userId: string) => {
+    setLinkedUserId(userId);
+    const u = onboardable.find((x) => x.user_id === userId);
+    if (!u) return;
+    form.reset({
+      ...form.getValues(),
+      full_name: u.full_name || '',
+      email: u.email || '',
+      phone_number: u.phone_number || form.getValues('phone_number') || '',
+    });
+  };
+
   const onSubmit = async (values: RiderFormValues) => {
     try {
-      const payload = {
+      const payload: any = {
         full_name: values.full_name,
         phone_number: values.phone_number,
         national_id: values.national_id,
@@ -97,6 +111,7 @@ const RiderFormDialog = ({ open, onOpenChange, rider, canDelete = false }: Props
         police_station_name: values.police_station_name || null,
         police_case_reference: values.police_case_reference || null,
       };
+      if (!isEdit && linkedUserId) payload.user_id = linkedUserId;
       if (isEdit) {
         await updateRider.mutateAsync({ id: rider.id, data: payload });
         toast({ title: 'Rider updated successfully' });
