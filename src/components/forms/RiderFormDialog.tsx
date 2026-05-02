@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
+import { UserPlus2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useCreateRider, useUpdateRider, useDeleteRider } from '@/hooks/api';
+import { useApprovedUsersForOnboarding } from '@/hooks/api/useApprovals';
 import KycDocumentsSection from '@/components/KycDocumentsSection';
 import type { Tables } from '@/integrations/supabase/types';
 
