@@ -41,40 +41,18 @@ export interface StaffUser {
   role: string;
 }
 
-/** List staff users (admin, operations_manager, accountant) the current user can chat with */
+/** List approved users (excluding self) the current staff member can DM */
 export const useStaffUsers = () => {
   return useQuery({
-    queryKey: ['messaging', 'staff-users'],
+    queryKey: ['messaging', 'approved-users'],
     queryFn: async (): Promise<StaffUser[]> => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-      const { data: roles, error } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .in('role', ['admin', 'operations_manager', 'accountant']);
+      const { data, error } = await supabase.rpc('get_approved_chat_users');
       if (error) throw error;
-      const userIds = Array.from(new Set((roles ?? []).map((r) => r.user_id))).filter(
-        (id) => id !== user.id
-      );
-      if (userIds.length === 0) return [];
-      const { data: profiles, error: pErr } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, email')
-        .in('user_id', userIds);
-      if (pErr) throw pErr;
-      const roleByUser: Record<string, string> = {};
-      (roles ?? []).forEach((r) => {
-        // Prefer admin > ops > accountant if multiple
-        const priority: Record<string, number> = { admin: 3, operations_manager: 2, accountant: 1 };
-        if (!roleByUser[r.user_id] || priority[r.role] > priority[roleByUser[r.user_id]]) {
-          roleByUser[r.user_id] = r.role;
-        }
-      });
-      return (profiles ?? []).map((p) => ({
-        user_id: p.user_id,
-        full_name: p.full_name,
-        email: p.email,
-        role: roleByUser[p.user_id] ?? 'staff',
+      return ((data || []) as any[]).map((u) => ({
+        user_id: u.user_id,
+        full_name: u.full_name,
+        email: u.email,
+        role: u.role,
       }));
     },
     staleTime: 60_000,
