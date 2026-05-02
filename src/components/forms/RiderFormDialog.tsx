@@ -45,9 +45,16 @@ const RiderFormDialog = ({ open, onOpenChange, rider, canDelete = false }: Props
   const createRider = useCreateRider();
   const updateRider = useUpdateRider();
   const deleteRider = useDeleteRider();
+  const { data: approvedUsers = [] } = useApprovedUsersForOnboarding();
+  const [linkedUserId, setLinkedUserId] = useState<string>('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [kycPct, setKycPct] = useState(0);
   const [kycHasRequired, setKycHasRequired] = useState(false);
+
+  // Approved users that don't yet have a rider record (for prefill)
+  const onboardable = (approvedUsers as any[]).filter(
+    (u) => !u.has_rider_record && (u.requested_role === 'rider' || u.requested_role == null)
+  );
 
   const form = useForm<RiderFormValues>({
     resolver: zodResolver(riderSchema),
