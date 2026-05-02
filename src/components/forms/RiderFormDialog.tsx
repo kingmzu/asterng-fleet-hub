@@ -146,6 +146,31 @@ const RiderFormDialog = ({ open, onOpenChange, rider, canDelete = false }: Props
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {!isEdit && onboardable.length > 0 && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-primary">
+                  <UserPlus2 className="h-3.5 w-3.5" />
+                  Prefill from approved user
+                </div>
+                <Select value={linkedUserId || undefined} onValueChange={handlePrefillUser}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select an approved user…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {onboardable.map((u) => (
+                      <SelectItem key={u.user_id} value={u.user_id}>
+                        {u.full_name} {u.email ? `· ${u.email}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {linkedUserId && (
+                  <p className="text-[11px] text-muted-foreground">
+                    This rider record will be linked to the selected user account.
+                  </p>
+                )}
+              </div>
+            )}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField control={form.control} name="full_name" render={({ field }) => (
                 <FormItem><FormLabel>Full Name *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
