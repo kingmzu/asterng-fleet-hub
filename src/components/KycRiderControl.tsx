@@ -159,7 +159,7 @@ const KycRiderControl = () => {
       toast.error('Reason required', { description: 'Please enter a rejection reason.' });
       return;
     }
-    await setStatus({ id: rejectRider.id, full_name: rejectRider.name }, 'rejected', rejectNote.trim());
+    await setStatus({ id: rejectRider.id, full_name: rejectRider.name, kyc_status: rejectRider.kyc_status }, 'rejected', rejectNote.trim());
     setRejectRider(null);
     setRejectNote('');
   };
