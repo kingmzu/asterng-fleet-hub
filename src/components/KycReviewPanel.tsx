@@ -45,7 +45,8 @@ const KycReviewPanel = () => {
       await review.mutateAsync({ id: doc.id, status: 'verified', notes: null });
       toast({ title: 'Document verified' });
     } catch (e: any) {
-      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+      console.error('[KYC review] approve failed', e);
+      toast({ title: 'Failed', description: e?.message || 'Unknown error', variant: 'destructive' });
     }
   };
 
@@ -57,7 +58,8 @@ const KycReviewPanel = () => {
       setRejectDoc(null);
       setRejectNotes('');
     } catch (e: any) {
-      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+      console.error('[KYC review] reject failed', e);
+      toast({ title: 'Failed', description: e?.message || 'Unknown error', variant: 'destructive' });
     }
   };
 
