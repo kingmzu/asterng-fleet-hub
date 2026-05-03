@@ -274,15 +274,16 @@ const KycRiderControl = () => {
                           <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuLabel className="text-xs">Update KYC Status</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setStatus(rider, 'pending', null)}>
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setStatus(rider, 'pending', null); }}>
                               <ShieldAlert className="mr-2 h-4 w-4 text-warning" /> Pending
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setStatus(rider, 'verified', null)}>
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setStatus(rider, 'verified', null); }}>
                               <ShieldCheck className="mr-2 h-4 w-4 text-success" /> Verified
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => {
-                                setRejectRider({ id: rider.id, name: rider.full_name });
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                setRejectRider({ id: rider.id, name: rider.full_name, kyc_status: rider.kyc_status });
                                 setRejectNote(rider.kyc_note || '');
                               }}
                             >
