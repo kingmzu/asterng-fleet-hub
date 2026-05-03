@@ -55,8 +55,9 @@ const statusBadgeClass = (s: string) =>
     : 'border-warning/30 bg-warning/10 text-warning';
 
 const KycRiderControl = () => {
-  const { data: roles = [] } = useUserRoles();
+  const { data: roles = [], isLoading: rolesLoading } = useUserRoles();
   const isAdmin = roles.includes('admin') || roles.includes('operations_manager');
+  const queryClient = useQueryClient();
 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'rejected'>('all');
