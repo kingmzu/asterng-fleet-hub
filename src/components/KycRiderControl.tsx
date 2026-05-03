@@ -76,7 +76,7 @@ const KycRiderControl = () => {
   const { data: riderDocs = [], isLoading: docsLoading } = useKycDocuments(docsRiderId || undefined);
 
   // Reject modal state
-  const [rejectRider, setRejectRider] = useState<{ id: string; name: string } | null>(null);
+  const [rejectRider, setRejectRider] = useState<{ id: string; name: string; kyc_status: string } | null>(null);
   const [rejectNote, setRejectNote] = useState('');
 
   // Preview modal
