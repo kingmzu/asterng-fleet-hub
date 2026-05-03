@@ -82,7 +82,11 @@ export const useUpdateRider = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['riders'] }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['riders'] });
+      if (data?.id) queryClient.invalidateQueries({ queryKey: ['rider', data.id] });
+      queryClient.invalidateQueries({ queryKey: ['compliance_overview'] });
+    },
   });
 };
 
