@@ -103,28 +103,33 @@ const KycRiderControl = () => {
   };
 
   const setStatus = async (
-    rider: { id: string; full_name: string },
+    rider: { id: string; full_name: string; kyc_status: string },
     next: 'pending' | 'verified' | 'rejected',
     note?: string | null
   ) => {
+    if (!isAdmin) {
+      toast.error('Permission denied', { description: 'Only admins or operations managers can change KYC status.' });
+      return;
+    }
+    if (rider.kyc_status === next && !note) {
+      toast.info(`Already ${next}`, { description: rider.full_name });
+      return;
+    }
     if (next === 'verified') {
-      // Validate required docs exist + verified
-      const { data, error } = await import('@/integrations/supabase/client').then(({ supabase }) =>
-        supabase.from('kyc_documents').select('document_type,status').eq('rider_id', rider.id)
-      );
+      const { data, error } = await supabase
+        .from('kyc_documents')
+        .select('document_type,status')
+        .eq('rider_id', rider.id);
       if (error) {
+        console.error('[KYC] doc validation failed', error);
         toast.error('Validation failed', { description: error.message });
         return;
       }
       const docs = data || [];
-      const missing = REQUIRED_TYPES.filter(
-        (t) => !docs.some((d) => d.document_type === t)
-      );
+      const missing = REQUIRED_TYPES.filter((t) => !docs.some((d) => d.document_type === t));
       if (missing.length) {
         toast.error('Cannot verify rider', {
-          description: `Missing required documents: ${missing
-            .map((m) => TYPE_LABEL[m])
-            .join(', ')}`,
+          description: `Missing required documents: ${missing.map((m) => TYPE_LABEL[m]).join(', ')}`,
         });
         return;
       }
@@ -135,9 +140,16 @@ const KycRiderControl = () => {
         id: rider.id,
         data: { kyc_status: next, kyc_note: note ?? null },
       });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['riders'] }),
+        queryClient.invalidateQueries({ queryKey: ['rider', rider.id] }),
+        queryClient.invalidateQueries({ queryKey: ['kyc_documents_pending'] }),
+        queryClient.invalidateQueries({ queryKey: ['compliance_overview'] }),
+      ]);
       toast.success(`KYC ${next}`, { description: rider.full_name });
     } catch (e: any) {
-      toast.error('Update failed', { description: e.message });
+      console.error('[KYC] update failed', e);
+      toast.error('Update failed', { description: e?.message || 'Unknown error' });
     }
   };
 
