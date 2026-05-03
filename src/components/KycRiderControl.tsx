@@ -263,7 +263,11 @@ const KycRiderControl = () => {
                       >
                         <Eye className="h-3.5 w-3.5" /> View Documents
                       </Button>
-                      {isAdmin && (
+                      {rolesLoading ? (
+                        <Button size="sm" className="h-8 gap-1" disabled>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading
+                        </Button>
+                      ) : isAdmin && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button size="sm" className="h-8 gap-1" disabled={updateRider.isPending}>
