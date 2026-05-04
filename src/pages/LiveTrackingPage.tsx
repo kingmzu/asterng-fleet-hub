@@ -88,7 +88,7 @@ const LiveTrackingPage = () => {
         </Badge>
       </div>
 
-      <Card className="overflow-hidden relative h-[55vh] min-h-[320px] max-h-[640px] sm:h-[60vh]">
+      <Card className="overflow-hidden relative h-64 sm:h-80 lg:h-[520px]">
         {isLoading ? (
           <div className="flex h-full items-center justify-center text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin" />
