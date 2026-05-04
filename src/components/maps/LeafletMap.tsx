@@ -70,30 +70,32 @@ const LeafletMap = ({
   className,
 }: Props) => {
   return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      scrollWheelZoom
-      className={className ?? 'h-full w-full'}
-      style={{ height: '100%', width: '100%' }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {followCenter && <Recenter center={center} zoom={zoom} />}
-      {path && path.length > 1 && <Polyline positions={path} pathOptions={{ color: pathColor, weight: 4 }} />}
-      {markers.map((m) => (
-        <Marker
-          key={m.id}
-          position={m.position}
-          icon={dotIcon(m.status)}
-          eventHandlers={m.onClick ? { click: m.onClick } : undefined}
-        >
-          {m.popup && <Popup>{m.popup}</Popup>}
-        </Marker>
-      ))}
-    </MapContainer>
+    <div className={`relative isolate ${className ?? 'h-full w-full'}`} style={{ height: '100%', width: '100%' }}>
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        scrollWheelZoom
+        className="h-full w-full"
+        style={{ height: '100%', width: '100%' }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {followCenter && <Recenter center={center} zoom={zoom} />}
+        {path && path.length > 1 && <Polyline positions={path} pathOptions={{ color: pathColor, weight: 4 }} />}
+        {markers.map((m) => (
+          <Marker
+            key={m.id}
+            position={m.position}
+            icon={dotIcon(m.status)}
+            eventHandlers={m.onClick ? { click: m.onClick } : undefined}
+          >
+            {m.popup && <Popup>{m.popup}</Popup>}
+          </Marker>
+        ))}
+      </MapContainer>
+    </div>
   );
 };
 
