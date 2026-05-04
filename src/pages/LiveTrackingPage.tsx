@@ -121,7 +121,7 @@ const LiveTrackingPage = () => {
           </SheetHeader>
 
           <div className="mt-4 space-y-4">
-            <div className="rounded-lg border h-48 overflow-hidden">
+            <div className="rounded-lg border h-40 sm:h-48 overflow-hidden">
               {selectedLoc && (
                 <LeafletMap
                   center={[Number(selectedLoc.lat), Number(selectedLoc.lng)]}
