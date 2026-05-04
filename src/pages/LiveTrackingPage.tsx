@@ -88,7 +88,7 @@ const LiveTrackingPage = () => {
         </Badge>
       </div>
 
-      <Card className="overflow-hidden relative h-[55vh] min-h-[320px] max-h-[640px] sm:h-[60vh]">
+      <Card className="overflow-hidden relative h-64 sm:h-80 lg:h-[520px]">
         {isLoading ? (
           <div className="flex h-full items-center justify-center text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin" />
@@ -121,7 +121,7 @@ const LiveTrackingPage = () => {
           </SheetHeader>
 
           <div className="mt-4 space-y-4">
-            <div className="rounded-lg border h-48 overflow-hidden">
+            <div className="rounded-lg border h-40 sm:h-48 overflow-hidden">
               {selectedLoc && (
                 <LeafletMap
                   center={[Number(selectedLoc.lat), Number(selectedLoc.lng)]}

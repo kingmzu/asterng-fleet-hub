@@ -495,7 +495,7 @@ const SmartMeterPage = () => {
 
       <div className="grid gap-4 lg:grid-cols-5">
         {/* Map column */}
-        <Card className="overflow-hidden lg:col-span-3 h-[40vh] min-h-[260px] max-h-[520px] sm:h-[45vh]">
+        <Card className="overflow-hidden lg:col-span-3 h-56 sm:h-72 lg:h-[460px]">
           <LeafletMap
             center={center}
             zoom={15}
