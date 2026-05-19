@@ -17,8 +17,12 @@ const LoginPage = () => {
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<Role>('rider');
   const [isSignup, setIsSignup] = useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  useEffect(() => {
+    if (searchParams.get('signup') === '1') setIsSignup(true);
+  }, [searchParams]);
   const { mutate: login, isPending: loginPending } = useLogin();
   const { mutate: signup, isPending: signupPending } = useSignup();
   const isPending = loginPending || signupPending;
