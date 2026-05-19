@@ -34,7 +34,7 @@ const PendingApprovalPage = () => {
 
   useEffect(() => {
     if (profile?.approval_status === 'approved') {
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     }
   }, [profile?.approval_status, navigate]);
 

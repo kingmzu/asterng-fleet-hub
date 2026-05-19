@@ -7,6 +7,7 @@ import AppLayout from "@/components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import LoginPage from "@/pages/LoginPage";
+import HomePage from "@/pages/HomePage";
 import Dashboard from "@/pages/Dashboard";
 import RidersPage from "@/pages/RidersPage";
 import MotorcyclesPage from "@/pages/MotorcyclesPage";
@@ -38,7 +39,8 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/pending-approval" element={<PendingApprovalPage />} />
-            <Route path="/" element={wrap(<Dashboard />, { staffOnly: true })} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/dashboard" element={wrap(<Dashboard />, { staffOnly: true })} />
             <Route path="/riders" element={wrap(<RidersPage />, { staffOnly: true })} />
             <Route path="/motorcycles" element={wrap(<MotorcyclesPage />, { staffOnly: true })} />
             <Route path="/smart-meter" element={wrap(<SmartMeterPage />)} />

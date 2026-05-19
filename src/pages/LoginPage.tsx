@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import logoMark from '@/assets/asterng-logo-mark.png';
 import { Input } from '@/components/ui/input';
@@ -17,8 +17,12 @@ const LoginPage = () => {
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<Role>('rider');
   const [isSignup, setIsSignup] = useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  useEffect(() => {
+    if (searchParams.get('signup') === '1') setIsSignup(true);
+  }, [searchParams]);
   const { mutate: login, isPending: loginPending } = useLogin();
   const { mutate: signup, isPending: signupPending } = useSignup();
   const isPending = loginPending || signupPending;
@@ -46,7 +50,7 @@ const LoginPage = () => {
         {
           onSuccess: () => {
             toast({ title: 'Welcome back', description: 'Logged in successfully' });
-            navigate('/');
+            navigate('/dashboard');
           },
           onError: (err: any) =>
             toast({ title: 'Login failed', description: err.message ?? 'Invalid email or password', variant: 'destructive' }),
