@@ -26,7 +26,7 @@ import logoMark from '@/assets/asterng-logo-mark.png';
 import { Badge } from '@/components/ui/badge';
 
 const allNavItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, staffOnly: true },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, staffOnly: true },
   { to: '/riders', label: 'Riders', icon: Users, staffOnly: true },
   { to: '/motorcycles', label: 'Motorcycles', icon: Bike, staffOnly: true },
   { to: '/smart-meter', label: 'Smart Meter', icon: Gauge, staffOnly: false },
