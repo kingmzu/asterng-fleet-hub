@@ -46,7 +46,7 @@ const ProtectedRoute = ({ children, staffOnly, adminOnly }: ProtectedRouteProps)
   }
 
   if (staffOnly && !isStaff) return <Navigate to="/smart-meter" replace />;
-  if (adminOnly && !isAdmin) return <Navigate to="/" replace />;
+  if (adminOnly && !isAdmin) return <Navigate to="/dashboard" replace />;
 
   return <>{children}</>;
 };
