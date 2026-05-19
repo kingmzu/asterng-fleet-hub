@@ -7,6 +7,7 @@ import AppLayout from "@/components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import LoginPage from "@/pages/LoginPage";
+import HomePage from "@/pages/HomePage";
 import Dashboard from "@/pages/Dashboard";
 import RidersPage from "@/pages/RidersPage";
 import MotorcyclesPage from "@/pages/MotorcyclesPage";
