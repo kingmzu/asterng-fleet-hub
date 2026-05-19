@@ -37,7 +37,7 @@ const ProtectedRoute = ({ children, staffOnly, adminOnly }: ProtectedRouteProps)
     return <Navigate to="/pending-approval" replace />;
   }
   if (approval === 'approved' && location.pathname === '/pending-approval') {
-    return <Navigate to={isRider && !isStaff ? '/smart-meter' : '/'} replace />;
+    return <Navigate to={isRider && !isStaff ? '/smart-meter' : '/dashboard'} replace />;
   }
 
   // Riders may only access /smart-meter
