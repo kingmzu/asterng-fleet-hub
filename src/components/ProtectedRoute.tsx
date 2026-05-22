@@ -32,11 +32,12 @@ const ProtectedRoute = ({ children, staffOnly, adminOnly }: ProtectedRouteProps)
   if (!user) return <Navigate to="/login" replace />;
 
   // Approval gate — block if profile not approved (except the pending page itself)
+  // Admins always bypass the approval gate
   const approval = profile?.approval_status ?? 'pending';
-  if (approval !== 'approved' && location.pathname !== '/pending-approval') {
+  if (!isAdmin && approval !== 'approved' && location.pathname !== '/pending-approval') {
     return <Navigate to="/pending-approval" replace />;
   }
-  if (approval === 'approved' && location.pathname === '/pending-approval') {
+  if ((isAdmin || approval === 'approved') && location.pathname === '/pending-approval') {
     return <Navigate to={isRider && !isStaff ? '/smart-meter' : '/dashboard'} replace />;
   }
 
