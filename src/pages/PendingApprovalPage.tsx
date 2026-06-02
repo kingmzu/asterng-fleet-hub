@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useCurrentUser, useUserProfile, useLogout } from '@/hooks/api';
+import { useRoles } from '@/hooks/api/useRoles';
 import { Clock, ShieldCheck, ShieldX, LogOut, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -11,6 +12,7 @@ import logoMark from '@/assets/asterng-logo-mark.png';
 const PendingApprovalPage = () => {
   const { user, isLoading } = useCurrentUser();
   const { data: profile } = useUserProfile();
+  const { isAdmin, isRider, isStaff } = useRoles();
   const { mutate: logout } = useLogout();
   const navigate = useNavigate();
   const qc = useQueryClient();
