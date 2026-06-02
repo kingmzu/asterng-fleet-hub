@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useCurrentUser, useUserProfile, useLogout } from '@/hooks/api';
+import { useRoles } from '@/hooks/api/useRoles';
 import { Clock, ShieldCheck, ShieldX, LogOut, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -11,6 +12,7 @@ import logoMark from '@/assets/asterng-logo-mark.png';
 const PendingApprovalPage = () => {
   const { user, isLoading } = useCurrentUser();
   const { data: profile } = useUserProfile();
+  const { isAdmin, isRider, isStaff } = useRoles();
   const { mutate: logout } = useLogout();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -33,10 +35,11 @@ const PendingApprovalPage = () => {
   }, [user, qc]);
 
   useEffect(() => {
-    if (profile?.approval_status === 'approved') {
-      navigate('/dashboard', { replace: true });
+    if (isAdmin || profile?.approval_status === 'approved') {
+      const dest = isRider && !isStaff && !isAdmin ? '/smart-meter' : '/dashboard';
+      navigate(dest, { replace: true });
     }
-  }, [profile?.approval_status, navigate]);
+  }, [isAdmin, isRider, isStaff, profile?.approval_status, navigate]);
 
   if (isLoading || !profile) {
     return (
