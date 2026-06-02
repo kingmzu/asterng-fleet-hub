@@ -35,10 +35,11 @@ const PendingApprovalPage = () => {
   }, [user, qc]);
 
   useEffect(() => {
-    if (profile?.approval_status === 'approved') {
-      navigate('/dashboard', { replace: true });
+    if (isAdmin || profile?.approval_status === 'approved') {
+      const dest = isRider && !isStaff && !isAdmin ? '/smart-meter' : '/dashboard';
+      navigate(dest, { replace: true });
     }
-  }, [profile?.approval_status, navigate]);
+  }, [isAdmin, isRider, isStaff, profile?.approval_status, navigate]);
 
   if (isLoading || !profile) {
     return (
