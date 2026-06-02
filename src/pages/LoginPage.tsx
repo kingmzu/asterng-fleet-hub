@@ -34,10 +34,7 @@ const LoginPage = () => {
         { email, password, fullName, requestedRole: role },
         {
           onSuccess: () => {
-            const msg = role === 'rider'
-              ? 'Your rider account is pending admin review. You can sign in once approved.'
-              : 'Your account requires admin approval before you can access the system.';
-            toast({ title: 'Account created', description: msg });
+            toast({ title: 'Account created', description: 'You can sign in now with your new account.' });
             setIsSignup(false);
           },
           onError: (err: any) =>
@@ -104,9 +101,7 @@ const LoginPage = () => {
                     </SelectContent>
                   </Select>
                   <p className="text-[11px] text-muted-foreground">
-                    {role === 'rider'
-                      ? 'You can sign in immediately after the admin approves you.'
-                      : 'Admin and Operational Manager accounts require approval from the founding admin.'}
+                    You'll be able to sign in immediately with your assigned role.
                   </p>
                 </div>
               </>

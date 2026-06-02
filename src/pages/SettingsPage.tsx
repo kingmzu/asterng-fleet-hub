@@ -11,7 +11,7 @@ import { useTheme, Theme } from '@/components/ThemeProvider';
 import { Sun, Moon, Monitor, Lock, Palette, Gauge, ShieldCheck } from 'lucide-react';
 import { useUserRoles } from '@/hooks/api/useAuth';
 import { useActivePricing, useUpsertPricing } from '@/hooks/api/useSmartMeter';
-import ApprovalsPanel from '@/components/ApprovalsPanel';
+
 
 const SettingsPage = () => {
   const { toast } = useToast();
@@ -223,23 +223,6 @@ const SettingsPage = () => {
           </AccordionItem>
         )}
 
-        {/* Approvals — admin only */}
-        {isAdmin && (
-          <AccordionItem value="approvals" className="rounded-xl border border-border bg-card px-4 border-b">
-            <AccordionTrigger className="hover:no-underline">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-primary/10 p-2 text-primary"><ShieldCheck className="h-4 w-4" /></div>
-                <div className="text-left">
-                  <p className="font-display text-sm font-semibold">Account Approvals</p>
-                  <p className="text-xs text-muted-foreground">Review pending and approved members.</p>
-                </div>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="pt-2"><ApprovalsPanel /></div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
       </Accordion>
     </div>
   );
