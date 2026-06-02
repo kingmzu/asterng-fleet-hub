@@ -8,7 +8,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme, Theme } from '@/components/ThemeProvider';
-import { Sun, Moon, Monitor, Lock, Palette, Gauge, ShieldCheck } from 'lucide-react';
+import { Sun, Moon, Monitor, Lock, Palette, Gauge } from 'lucide-react';
 import { useUserRoles } from '@/hooks/api/useAuth';
 import { useActivePricing, useUpsertPricing } from '@/hooks/api/useSmartMeter';
 
