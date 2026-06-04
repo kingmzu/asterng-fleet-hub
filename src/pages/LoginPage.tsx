@@ -24,6 +24,16 @@ const LoginPage = () => {
   useEffect(() => {
     if (searchParams.get('signup') === '1') setIsSignup(true);
   }, [searchParams]);
+  const { user } = useCurrentUser();
+  const { isStaff, isRider, isLoading: rolesLoading } = useRoles();
+  const [pendingRedirect, setPendingRedirect] = useState(false);
+
+  useEffect(() => {
+    if (!pendingRedirect || !user || rolesLoading) return;
+    if (isRider && !isStaff) navigate('/smart-meter');
+    else navigate('/dashboard');
+  }, [pendingRedirect, user, rolesLoading, isRider, isStaff, navigate]);
+
   const { mutate: login, isPending: loginPending } = useLogin();
   const { mutate: signup, isPending: signupPending } = useSignup();
   const isPending = loginPending || signupPending;
