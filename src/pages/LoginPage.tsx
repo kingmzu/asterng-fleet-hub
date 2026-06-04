@@ -5,7 +5,8 @@ import logoMark from '@/assets/asterng-logo-mark.png';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLogin, useSignup } from '@/hooks/api';
+import { useLogin, useSignup, useCurrentUser } from '@/hooks/api';
+import { useRoles } from '@/hooks/api/useRoles';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -23,6 +24,16 @@ const LoginPage = () => {
   useEffect(() => {
     if (searchParams.get('signup') === '1') setIsSignup(true);
   }, [searchParams]);
+  const { user } = useCurrentUser();
+  const { isStaff, isRider, isLoading: rolesLoading } = useRoles();
+  const [pendingRedirect, setPendingRedirect] = useState(false);
+
+  useEffect(() => {
+    if (!pendingRedirect || !user || rolesLoading) return;
+    if (isRider && !isStaff) navigate('/smart-meter');
+    else navigate('/dashboard');
+  }, [pendingRedirect, user, rolesLoading, isRider, isStaff, navigate]);
+
   const { mutate: login, isPending: loginPending } = useLogin();
   const { mutate: signup, isPending: signupPending } = useSignup();
   const isPending = loginPending || signupPending;
@@ -47,7 +58,7 @@ const LoginPage = () => {
         {
           onSuccess: () => {
             toast({ title: 'Welcome back', description: 'Logged in successfully' });
-            navigate('/dashboard');
+            setPendingRedirect(true);
           },
           onError: (err: any) =>
             toast({ title: 'Login failed', description: err.message ?? 'Invalid email or password', variant: 'destructive' }),
