@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import logoMark from '@/assets/asterng-logo-mark.png';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLogin, useSignup, useCurrentUser } from '@/hooks/api';
-import { useRoles } from '@/hooks/api/useRoles';
+import { useLogin, useSignup } from '@/hooks/api';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -18,22 +17,8 @@ const LoginPage = () => {
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<Role>('rider');
   const [isSignup, setIsSignup] = useState(false);
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  useEffect(() => {
-    if (searchParams.get('signup') === '1') setIsSignup(true);
-  }, [searchParams]);
-  const { user } = useCurrentUser();
-  const { isStaff, isRider, isLoading: rolesLoading } = useRoles();
-  const [pendingRedirect, setPendingRedirect] = useState(false);
-
-  useEffect(() => {
-    if (!pendingRedirect || !user || rolesLoading) return;
-    if (isRider && !isStaff) navigate('/smart-meter');
-    else navigate('/dashboard');
-  }, [pendingRedirect, user, rolesLoading, isRider, isStaff, navigate]);
-
   const { mutate: login, isPending: loginPending } = useLogin();
   const { mutate: signup, isPending: signupPending } = useSignup();
   const isPending = loginPending || signupPending;
@@ -45,7 +30,10 @@ const LoginPage = () => {
         { email, password, fullName, requestedRole: role },
         {
           onSuccess: () => {
-            toast({ title: 'Account created', description: 'You can sign in now with your new account.' });
+            const msg = role === 'rider'
+              ? 'Your rider account is pending admin review. You can sign in once approved.'
+              : 'Your account requires admin approval before you can access the system.';
+            toast({ title: 'Account created', description: msg });
             setIsSignup(false);
           },
           onError: (err: any) =>
@@ -58,7 +46,7 @@ const LoginPage = () => {
         {
           onSuccess: () => {
             toast({ title: 'Welcome back', description: 'Logged in successfully' });
-            setPendingRedirect(true);
+            navigate('/');
           },
           onError: (err: any) =>
             toast({ title: 'Login failed', description: err.message ?? 'Invalid email or password', variant: 'destructive' }),
@@ -112,7 +100,9 @@ const LoginPage = () => {
                     </SelectContent>
                   </Select>
                   <p className="text-[11px] text-muted-foreground">
-                    You'll be able to sign in immediately with your assigned role.
+                    {role === 'rider'
+                      ? 'You can sign in immediately after the admin approves you.'
+                      : 'Admin and Operational Manager accounts require approval from the founding admin.'}
                   </p>
                 </div>
               </>
