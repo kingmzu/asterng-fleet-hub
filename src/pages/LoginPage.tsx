@@ -44,9 +44,13 @@ const LoginPage = () => {
       login(
         { email, password },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
             toast({ title: 'Welcome back', description: 'Logged in successfully' });
-            navigate('/');
+            // Ensure the session is fully hydrated before navigating so
+            // ProtectedRoute sees the user and doesn't bounce to /login or /pending-approval.
+            const { supabase } = await import('@/integrations/supabase/client');
+            await supabase.auth.getSession();
+            navigate('/', { replace: true });
           },
           onError: (err: any) =>
             toast({ title: 'Login failed', description: err.message ?? 'Invalid email or password', variant: 'destructive' }),

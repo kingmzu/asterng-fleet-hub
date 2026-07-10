@@ -37,7 +37,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/pending-approval" element={<PendingApprovalPage />} />
+            <Route path="/pending-approval" element={<ProtectedRoute><PendingApprovalPage /></ProtectedRoute>} />
             <Route path="/" element={wrap(<Dashboard />, { staffOnly: true })} />
             <Route path="/riders" element={wrap(<RidersPage />, { staffOnly: true })} />
             <Route path="/motorcycles" element={wrap(<MotorcyclesPage />, { staffOnly: true })} />
