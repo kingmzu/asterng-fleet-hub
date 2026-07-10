@@ -75,12 +75,15 @@ export const useLogout = () => {
 export const useCurrentUser = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
         setIsLoading(false);
+        // Ensure profile/role queries refetch whenever the session changes
+        queryClient.invalidateQueries({ queryKey: ['auth'] });
       }
     );
 
@@ -90,18 +93,20 @@ export const useCurrentUser = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   return { user, isLoading };
 };
 
 export const useUserProfile = () => {
+  const { user } = useCurrentUser();
   return useQuery({
-    queryKey: ['auth', 'profile'],
+    queryKey: ['auth', 'profile', user?.id],
+    enabled: !!user?.id,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 2000),
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-
+      if (!user?.id) return null;
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -116,12 +121,14 @@ export const useUserProfile = () => {
 };
 
 export const useUserRoles = () => {
+  const { user } = useCurrentUser();
   return useQuery({
-    queryKey: ['auth', 'roles'],
+    queryKey: ['auth', 'roles', user?.id],
+    enabled: !!user?.id,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 2000),
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-
+      if (!user?.id) return [];
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
