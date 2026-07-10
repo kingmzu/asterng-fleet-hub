@@ -1,21 +1,31 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useCurrentUser, useUserProfile, useLogout } from '@/hooks/api';
-import { Clock, ShieldCheck, ShieldX, LogOut, Loader2 } from 'lucide-react';
+import { useRoles } from '@/hooks/api/useRoles';
+import { Clock, ShieldCheck, ShieldX, LogOut, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 import logoMark from '@/assets/asterng-logo-mark.png';
 
 const PendingApprovalPage = () => {
   const { user, isLoading } = useCurrentUser();
-  const { data: profile } = useUserProfile();
+  const { data: profile, isLoading: profileLoading, refetch } = useUserProfile();
+  const { isStaff, isRider } = useRoles();
   const { mutate: logout } = useLogout();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { toast } = useToast();
+  const [checking, setChecking] = useState(false);
 
-  // Realtime: poll the profile so the user is forwarded the moment admin approves
+  // Not logged in → go to login
+  useEffect(() => {
+    if (!isLoading && !user) navigate('/login', { replace: true });
+  }, [isLoading, user, navigate]);
+
+  // Realtime: forward user the moment admin approves
   useEffect(() => {
     if (!user) return;
     const ch = supabase
@@ -29,16 +39,42 @@ const PendingApprovalPage = () => {
         }
       )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    // Safety net: poll every 15s in case realtime is delayed
+    const poll = setInterval(() => {
+      qc.invalidateQueries({ queryKey: ['auth', 'profile'] });
+    }, 15000);
+    return () => {
+      supabase.removeChannel(ch);
+      clearInterval(poll);
+    };
   }, [user, qc]);
 
+  // Redirect on approval — route riders to smart meter, staff to dashboard
   useEffect(() => {
     if (profile?.approval_status === 'approved') {
-      navigate('/', { replace: true });
+      const dest = isRider && !isStaff ? '/smart-meter' : '/';
+      navigate(dest, { replace: true });
     }
-  }, [profile?.approval_status, navigate]);
+  }, [profile?.approval_status, isRider, isStaff, navigate]);
 
-  if (isLoading || !profile) {
+  const handleRefresh = async () => {
+    setChecking(true);
+    try {
+      const { data } = await refetch();
+      await qc.invalidateQueries({ queryKey: ['auth', 'roles'] });
+      if (data?.approval_status === 'approved') {
+        toast({ title: 'Approved!', description: 'Redirecting you now…' });
+      } else if (data?.approval_status === 'rejected') {
+        toast({ title: 'Access declined', description: 'Contact your administrator.', variant: 'destructive' });
+      } else {
+        toast({ title: 'Still pending', description: 'An admin has not reviewed your account yet.' });
+      }
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  if (isLoading || profileLoading || !profile) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -46,8 +82,7 @@ const PendingApprovalPage = () => {
     );
   }
 
-  const status = profile.approval_status;
-  const isRejected = status === 'rejected';
+  const isRejected = profile.approval_status === 'rejected';
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -76,7 +111,7 @@ const PendingApprovalPage = () => {
             <div>
               <h1 className="font-display text-xl font-bold">Awaiting Approval</h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Your <span className="font-medium text-foreground">{profile.requested_role?.replace('_', ' ') || 'account'}</span> registration is being reviewed by an administrator. You'll get access automatically once approved.
+                Your <span className="font-medium text-foreground">{profile.requested_role?.replace('_', ' ') || 'account'}</span> registration is being reviewed. You'll be forwarded automatically once approved.
               </p>
             </div>
             <div className="rounded-lg border border-border bg-muted/40 p-3 text-left text-xs space-y-1">
@@ -84,6 +119,10 @@ const PendingApprovalPage = () => {
               <div className="flex justify-between"><span className="text-muted-foreground">Email</span><span className="font-medium truncate ml-2">{profile.email}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="inline-flex items-center gap-1 font-medium text-warning"><ShieldCheck className="h-3 w-3" /> Pending</span></div>
             </div>
+            <Button className="w-full gap-2" onClick={handleRefresh} disabled={checking}>
+              {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              Check status
+            </Button>
           </>
         )}
 
