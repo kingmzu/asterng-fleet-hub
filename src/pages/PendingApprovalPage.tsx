@@ -60,7 +60,8 @@ const PendingApprovalPage = () => {
   const handleRefresh = async () => {
     setChecking(true);
     try {
-      const { data } = await refetch();
+      const { data, error } = await refetch();
+      if (error) throw error;
       await qc.invalidateQueries({ queryKey: ['auth', 'roles'] });
       if (data?.approval_status === 'approved') {
         toast({ title: 'Approved!', description: 'Redirecting you now…' });
@@ -69,12 +70,22 @@ const PendingApprovalPage = () => {
       } else {
         toast({ title: 'Still pending', description: 'An admin has not reviewed your account yet.' });
       }
+    } catch (e: any) {
+      toast({ title: 'Check failed', description: e?.message ?? 'Please try again.', variant: 'destructive' });
     } finally {
       setChecking(false);
     }
   };
 
-  if (isLoading || profileLoading || !profile) {
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const isRejected = profile?.approval_status === 'rejected';
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
