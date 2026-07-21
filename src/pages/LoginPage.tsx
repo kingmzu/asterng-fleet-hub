@@ -47,9 +47,22 @@ const LoginPage = () => {
       login(
         { email, password },
         {
-          onSuccess: () => {
+          onSuccess: async (data) => {
             toast({ title: 'Welcome back', description: 'Logged in successfully' });
-            navigate('/');
+            const userId = data?.user?.id;
+            let dest = '/';
+            if (userId) {
+              const { data: roleRows } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', userId);
+              const roles = (roleRows ?? []).map((r) => r.role);
+              const isStaff = roles.some((r) => r === 'admin' || r === 'operations_manager' || r === 'accountant');
+              const isRider = roles.includes('rider') || (!isStaff && roles.length > 0);
+              dest = isRider && !isStaff ? '/smart-meter' : '/';
+            }
+            await queryClient.invalidateQueries({ queryKey: ['auth'] });
+            navigate(dest, { replace: true });
           },
           onError: (err: any) =>
             toast({ title: 'Login failed', description: err.message ?? 'Invalid email or password', variant: 'destructive' }),
