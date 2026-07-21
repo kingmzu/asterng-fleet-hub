@@ -74,10 +74,35 @@ const PendingApprovalPage = () => {
     }
   };
 
-  if (isLoading || profileLoading || !profile) {
+  if (isLoading || (profileLoading && !profileError && !profile)) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (profileError || !profile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md p-8 text-center space-y-5">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
+            <ShieldX className="h-7 w-7 text-destructive" />
+          </div>
+          <div>
+            <h1 className="font-display text-xl font-bold">Couldn't load your account</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We couldn't reach your profile just now. Please retry, or sign out and back in.
+            </p>
+          </div>
+          <Button className="w-full gap-2" onClick={handleRefresh} disabled={checking}>
+            {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Retry
+          </Button>
+          <Button variant="outline" className="w-full gap-2" onClick={() => logout(undefined, { onSuccess: () => navigate('/login') })}>
+            <LogOut className="h-4 w-4" /> Sign out
+          </Button>
+        </Card>
       </div>
     );
   }
