@@ -20,6 +20,7 @@ const LoginPage = () => {
   const [role, setRole] = useState<Role>('rider');
   const [isSignup, setIsSignup] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const { mutate: login, isPending: loginPending } = useLogin();
   const { mutate: signup, isPending: signupPending } = useSignup();
