@@ -31,16 +31,6 @@ const ProtectedRoute = ({ children, staffOnly, adminOnly }: ProtectedRouteProps)
 
   if (!user) return <Navigate to="/login" replace />;
 
-  if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
-    console.debug('[ProtectedRoute]', {
-      path: location.pathname,
-      userId: user.id,
-      approval: profile?.approval_status,
-      isStaff, isAdmin, isRider,
-    });
-  }
-
   // Approval gate — block if profile not approved (except the pending page itself)
   const approval = profile?.approval_status ?? 'pending';
   if (approval !== 'approved' && location.pathname !== '/pending-approval') {

@@ -60,8 +60,7 @@ const PendingApprovalPage = () => {
   const handleRefresh = async () => {
     setChecking(true);
     try {
-      const { data, error } = await refetch();
-      if (error) throw error;
+      const { data } = await refetch();
       await qc.invalidateQueries({ queryKey: ['auth', 'roles'] });
       if (data?.approval_status === 'approved') {
         toast({ title: 'Approved!', description: 'Redirecting you now…' });
@@ -70,14 +69,12 @@ const PendingApprovalPage = () => {
       } else {
         toast({ title: 'Still pending', description: 'An admin has not reviewed your account yet.' });
       }
-    } catch (e: any) {
-      toast({ title: 'Check failed', description: e?.message ?? 'Please try again.', variant: 'destructive' });
     } finally {
       setChecking(false);
     }
   };
 
-  if (isLoading) {
+  if (isLoading || profileLoading || !profile) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -85,7 +82,7 @@ const PendingApprovalPage = () => {
     );
   }
 
-  const isRejected = profile?.approval_status === 'rejected';
+  const isRejected = profile.approval_status === 'rejected';
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -114,13 +111,13 @@ const PendingApprovalPage = () => {
             <div>
               <h1 className="font-display text-xl font-bold">Awaiting Approval</h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Your <span className="font-medium text-foreground">{profile?.requested_role?.replace('_', ' ') || 'account'}</span> registration is being reviewed. You'll be forwarded automatically once approved.
+                Your <span className="font-medium text-foreground">{profile.requested_role?.replace('_', ' ') || 'account'}</span> registration is being reviewed. You'll be forwarded automatically once approved.
               </p>
             </div>
             <div className="rounded-lg border border-border bg-muted/40 p-3 text-left text-xs space-y-1">
-              <div className="flex justify-between"><span className="text-muted-foreground">Name</span><span className="font-medium">{profile?.full_name ?? (profileLoading ? 'Loading…' : '—')}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Email</span><span className="font-medium truncate ml-2">{profile?.email ?? user?.email ?? '—'}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="inline-flex items-center gap-1 font-medium text-warning"><ShieldCheck className="h-3 w-3" /> {profile?.approval_status ?? 'Pending'}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Name</span><span className="font-medium">{profile.full_name}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Email</span><span className="font-medium truncate ml-2">{profile.email}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="inline-flex items-center gap-1 font-medium text-warning"><ShieldCheck className="h-3 w-3" /> Pending</span></div>
             </div>
             <Button className="w-full gap-2" onClick={handleRefresh} disabled={checking}>
               {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
