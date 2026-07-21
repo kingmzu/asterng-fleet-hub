@@ -12,7 +12,7 @@ import logoMark from '@/assets/asterng-logo-mark.png';
 
 const PendingApprovalPage = () => {
   const { user, isLoading } = useCurrentUser();
-  const { data: profile, isLoading: profileLoading, refetch } = useUserProfile();
+  const { data: profile, isLoading: profileLoading, error: profileError, refetch } = useUserProfile();
   const { isStaff, isRider } = useRoles();
   const { mutate: logout } = useLogout();
   const navigate = useNavigate();
