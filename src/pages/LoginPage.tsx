@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import logoMark from '@/assets/asterng-logo-mark.png';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLogin, useSignup } from '@/hooks/api';
+import { useLogin, useSignup, useCurrentUser } from '@/hooks/api';
+import { useRoles } from '@/hooks/api/useRoles';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -17,11 +18,20 @@ const LoginPage = () => {
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<Role>('rider');
   const [isSignup, setIsSignup] = useState(false);
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { mutate: login, isPending: loginPending } = useLogin();
   const { mutate: signup, isPending: signupPending } = useSignup();
+  const { user } = useCurrentUser();
+  const { isStaff, isRider, isLoading: rolesLoading } = useRoles();
   const isPending = loginPending || signupPending;
+
+  useEffect(() => {
+    if (!justLoggedIn || !user || rolesLoading) return;
+    navigate(isStaff ? '/' : isRider ? '/smart-meter' : '/', { replace: true });
+  }, [justLoggedIn, user, rolesLoading, isStaff, isRider, navigate]);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +56,9 @@ const LoginPage = () => {
         {
           onSuccess: () => {
             toast({ title: 'Welcome back', description: 'Logged in successfully' });
-            navigate('/');
+            setJustLoggedIn(true);
           },
+
           onError: (err: any) =>
             toast({ title: 'Login failed', description: err.message ?? 'Invalid email or password', variant: 'destructive' }),
         }
