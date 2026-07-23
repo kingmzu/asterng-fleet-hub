@@ -75,6 +75,16 @@ const RemittanceFormDialog = ({ open, onOpenChange, remittance }: Props) => {
     setShowDeleteConfirm(false);
   }, [remittance, open]);
 
+  const watchedRiderId = form.watch('rider_id');
+  useEffect(() => {
+    if (isEdit || !watchedRiderId) return;
+    const rider = riders.find((r) => r.id === watchedRiderId);
+    if (rider?.assigned_bike_id) {
+      form.setValue('bike_id', rider.assigned_bike_id, { shouldValidate: true });
+    }
+  }, [watchedRiderId, riders, isEdit]);
+
+
   const onSubmit = async (values: FormValues) => {
     try {
       const payload = {
