@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import logoMark from '@/assets/asterng-logo-mark.png';
 import { Input } from '@/components/ui/input';
@@ -20,7 +18,6 @@ const LoginPage = () => {
   const [role, setRole] = useState<Role>('rider');
   const [isSignup, setIsSignup] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
   const { mutate: login, isPending: loginPending } = useLogin();
   const { mutate: signup, isPending: signupPending } = useSignup();
@@ -47,22 +44,9 @@ const LoginPage = () => {
       login(
         { email, password },
         {
-          onSuccess: async (data) => {
+          onSuccess: () => {
             toast({ title: 'Welcome back', description: 'Logged in successfully' });
-            const userId = data?.user?.id;
-            let dest = '/';
-            if (userId) {
-              const { data: roleRows } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', userId);
-              const roles = (roleRows ?? []).map((r) => r.role);
-              const isStaff = roles.some((r) => r === 'admin' || r === 'operations_manager' || r === 'accountant');
-              const isRider = roles.includes('rider') || (!isStaff && roles.length > 0);
-              dest = isRider && !isStaff ? '/smart-meter' : '/';
-            }
-            await queryClient.invalidateQueries({ queryKey: ['auth'] });
-            navigate(dest, { replace: true });
+            navigate('/');
           },
           onError: (err: any) =>
             toast({ title: 'Login failed', description: err.message ?? 'Invalid email or password', variant: 'destructive' }),

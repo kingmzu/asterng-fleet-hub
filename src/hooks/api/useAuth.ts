@@ -116,11 +116,12 @@ export const useUserProfile = () => {
 };
 
 export const useUserRoles = () => {
-  const { user } = useCurrentUser();
   return useQuery({
-    queryKey: ['auth', 'roles', user?.id],
+    queryKey: ['auth', 'roles'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
+
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -129,7 +130,6 @@ export const useUserRoles = () => {
       if (error) throw error;
       return data?.map((r) => r.role) || [];
     },
-    enabled: !!user,
     staleTime: 30 * 1000,
   });
 };
