@@ -56,8 +56,9 @@ const LoginPage = () => {
         {
           onSuccess: () => {
             toast({ title: 'Welcome back', description: 'Logged in successfully' });
-            navigate('/');
+            setJustLoggedIn(true);
           },
+
           onError: (err: any) =>
             toast({ title: 'Login failed', description: err.message ?? 'Invalid email or password', variant: 'destructive' }),
         }
