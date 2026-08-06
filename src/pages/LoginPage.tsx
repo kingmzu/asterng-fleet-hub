@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import logoMark from '@/assets/asterng-logo-mark.png';
 import { Input } from '@/components/ui/input';
@@ -8,16 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLogin, useSignup, useCurrentUser } from '@/hooks/api';
 import { useRoles } from '@/hooks/api/useRoles';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 
 type Role = 'admin' | 'operations_manager' | 'rider';
 
 const LoginPage = () => {
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<Role>('rider');
-  const [isSignup, setIsSignup] = useState(false);
+  const [isSignup, setIsSignup] = useState(location.pathname === '/signup');
   const [justLoggedIn, setJustLoggedIn] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
