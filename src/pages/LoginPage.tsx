@@ -29,7 +29,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (!justLoggedIn || !user || rolesLoading) return;
-    navigate(isStaff ? '/' : isRider ? '/smart-meter' : '/', { replace: true });
+    navigate(isStaff ? '/dashboard' : isRider ? '/smart-meter' : '/dashboard', { replace: true });
   }, [justLoggedIn, user, rolesLoading, isStaff, isRider, navigate]);
 
 
