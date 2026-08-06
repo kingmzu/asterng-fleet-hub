@@ -38,13 +38,13 @@ const LandingNav = () => {
         'fixed inset-x-0 top-0 z-50 transition-all duration-300',
         scrolled
           ? 'border-b border-border/60 bg-background/70 shadow-[var(--shadow-card)] backdrop-blur-xl'
-          : 'border-b border-transparent bg-transparent'
+          : 'border-b border-transparent bg-transparent [&_.nav-text]:text-sidebar-foreground/80 [&_.nav-text:hover]:text-sidebar-primary [&_.nav-brand]:text-sidebar-accent-foreground'
       )}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
         <button onClick={() => go('home')} className="flex items-center gap-2.5" aria-label="ASTERNG home">
           <img src={logoMark} alt="ASTERNG logo" className="h-9 w-9 object-contain" width={36} height={36} />
-          <span className="font-display text-lg font-bold tracking-tight text-foreground">ASTERNG</span>
+          <span className="nav-brand font-display text-lg font-bold tracking-tight text-foreground">ASTERNG</span>
         </button>
 
         <div className="mx-auto hidden items-center gap-1 lg:flex">
@@ -52,7 +52,7 @@ const LandingNav = () => {
             <button
               key={l.id}
               onClick={() => go(l.id)}
-              className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="nav-text rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               {l.label}
             </button>
@@ -62,12 +62,12 @@ const LandingNav = () => {
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <button
             onClick={() => setTheme(resolved === 'dark' ? 'light' : 'dark')}
-            className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="nav-text rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label="Toggle theme"
           >
             {resolved === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+          <Button asChild variant="ghost" size="sm" className="nav-text hidden sm:inline-flex">
             <Link to="/login">Login</Link>
           </Button>
           <Button asChild size="sm" className="hidden rounded-full px-5 sm:inline-flex">
@@ -75,7 +75,7 @@ const LandingNav = () => {
           </Button>
           <button
             onClick={() => setOpen((v) => !v)}
-            className="rounded-md p-2 text-foreground lg:hidden"
+            className="nav-text rounded-md p-2 text-foreground lg:hidden"
             aria-label="Toggle menu"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
