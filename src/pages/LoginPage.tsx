@@ -75,6 +75,12 @@ const LoginPage = () => {
       </div>
 
       <div className="relative w-full max-w-md">
+        <Link
+          to="/"
+          className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+        >
+          <ArrowLeft className="h-4 w-4" /> Back to homepage
+        </Link>
         <div className="rounded-3xl border border-border bg-card/95 p-8 shadow-2xl backdrop-blur-sm sm:p-10">
           <div className="mb-8 flex flex-col items-center text-center">
             <div className="mb-4 flex h-20 w-20 items-center justify-center">
