@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import Home from "@/pages/Home";
 import LoginPage from "@/pages/LoginPage";
 import Dashboard from "@/pages/Dashboard";
 import RidersPage from "@/pages/RidersPage";
@@ -36,9 +37,11 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<Home />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<LoginPage />} />
             <Route path="/pending-approval" element={<PendingApprovalPage />} />
-            <Route path="/" element={wrap(<Dashboard />, { staffOnly: true })} />
+            <Route path="/dashboard" element={wrap(<Dashboard />, { staffOnly: true })} />
             <Route path="/riders" element={wrap(<RidersPage />, { staffOnly: true })} />
             <Route path="/motorcycles" element={wrap(<MotorcyclesPage />, { staffOnly: true })} />
             <Route path="/smart-meter" element={wrap(<SmartMeterPage />)} />

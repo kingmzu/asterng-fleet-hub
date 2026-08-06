@@ -52,7 +52,7 @@ const PendingApprovalPage = () => {
   // Redirect on approval — route riders to smart meter, staff to dashboard
   useEffect(() => {
     if (profile?.approval_status === 'approved') {
-      const dest = isRider && !isStaff ? '/smart-meter' : '/';
+      const dest = isRider && !isStaff ? '/smart-meter' : '/dashboard';
       navigate(dest, { replace: true });
     }
   }, [profile?.approval_status, isRider, isStaff, navigate]);

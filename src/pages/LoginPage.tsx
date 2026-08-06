@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import logoMark from '@/assets/asterng-logo-mark.png';
 import { Input } from '@/components/ui/input';
@@ -8,16 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLogin, useSignup, useCurrentUser } from '@/hooks/api';
 import { useRoles } from '@/hooks/api/useRoles';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 
 type Role = 'admin' | 'operations_manager' | 'rider';
 
 const LoginPage = () => {
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<Role>('rider');
-  const [isSignup, setIsSignup] = useState(false);
+  const [isSignup, setIsSignup] = useState(location.pathname === '/signup');
   const [justLoggedIn, setJustLoggedIn] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -29,7 +30,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (!justLoggedIn || !user || rolesLoading) return;
-    navigate(isStaff ? '/' : isRider ? '/smart-meter' : '/', { replace: true });
+    navigate(isStaff ? '/dashboard' : isRider ? '/smart-meter' : '/dashboard', { replace: true });
   }, [justLoggedIn, user, rolesLoading, isStaff, isRider, navigate]);
 
 
@@ -74,6 +75,12 @@ const LoginPage = () => {
       </div>
 
       <div className="relative w-full max-w-md">
+        <Link
+          to="/"
+          className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+        >
+          <ArrowLeft className="h-4 w-4" /> Back to homepage
+        </Link>
         <div className="rounded-3xl border border-border bg-card/95 p-8 shadow-2xl backdrop-blur-sm sm:p-10">
           <div className="mb-8 flex flex-col items-center text-center">
             <div className="mb-4 flex h-20 w-20 items-center justify-center">
