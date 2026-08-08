@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom';
-import { Linkedin, Twitter, Instagram, Facebook } from 'lucide-react';
+import { Linkedin, Twitter, Instagram, Facebook, Mail, Phone, MapPin } from 'lucide-react';
 import logoMark from '@/assets/asterng-logo-mark.png';
+import {
+  CONTACT_ADDRESS,
+  CONTACT_EMAIL,
+  CONTACT_PHONE_DISPLAY,
+  CONTACT_PHONE_TEL,
+} from './ContactSection';
 
 const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+
 
 const LandingFooter = () => (
   <footer className="bg-sidebar py-14 text-sidebar-foreground">
