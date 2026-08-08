@@ -10,17 +10,22 @@ import { supabase } from '@/integrations/supabase/client';
 import Reveal from './Reveal';
 
 const schema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(100, 'Name is too long'),
+  name: z.string().trim().min(1, 'Full name is required').max(100, 'Name is too long'),
   email: z.string().trim().email('Enter a valid email address').max(255),
   phone: z.string().trim().max(30, 'Phone number is too long').optional().or(z.literal('')),
-  subject: z.string().trim().max(150, 'Subject is too long').optional().or(z.literal('')),
+  subject: z.string().trim().min(1, 'Subject is required').max(150, 'Subject is too long'),
   message: z.string().trim().min(1, 'Message is required').max(2000, 'Message is too long'),
 });
 
+export const CONTACT_PHONE_DISPLAY = '+234 901 133 1000';
+export const CONTACT_PHONE_TEL = '+2349011331000';
+export const CONTACT_EMAIL = 'asterngofficial@gmail.com';
+export const CONTACT_ADDRESS = 'Gombe State, Nigeria';
+
 const details = [
-  { icon: Mail, label: 'Email', value: 'info@asterng.com', href: 'mailto:info@asterng.com' },
-  { icon: Phone, label: 'Phone', value: '+234 800 000 0000', href: 'tel:+2348000000000' },
-  { icon: MapPin, label: 'Office', value: 'Abuja, Nigeria', href: undefined },
+  { icon: Mail, label: 'Email', value: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` },
+  { icon: Phone, label: 'Phone', value: CONTACT_PHONE_DISPLAY, href: `tel:${CONTACT_PHONE_TEL}` },
+  { icon: MapPin, label: 'Office', value: CONTACT_ADDRESS, href: undefined },
 ];
 
 const socials = [
@@ -54,15 +59,25 @@ const ContactSection = () => {
       name: parsed.data.name,
       email: parsed.data.email,
       phone: parsed.data.phone || null,
-      subject: parsed.data.subject || null,
+      subject: parsed.data.subject,
       message: parsed.data.message,
+      status: 'unread',
     });
     setSending(false);
     if (error) {
-      toast({ title: 'Message not sent', description: error.message, variant: 'destructive' });
+      console.error('Contact form submission failed:', error);
+      toast({
+        title: 'Message not sent',
+        description: `Your message could not be sent. Please try again or contact us directly at ${CONTACT_EMAIL}.`,
+        variant: 'destructive',
+      });
       return;
     }
-    toast({ title: 'Message sent', description: 'Thank you — our team will get back to you shortly.' });
+    toast({
+      title: 'Message received',
+      description:
+        'Thank you for contacting ASTERNG. Your message has been received and our team will get back to you shortly.',
+    });
     setForm({ name: '', email: '', phone: '', subject: '', message: '' });
   };
 
@@ -82,14 +97,17 @@ const ContactSection = () => {
 
             <div className="mt-10 space-y-4">
               {details.map((d) => (
-                <div key={d.label} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
+                <div
+                  key={d.label}
+                  className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-[var(--shadow-elevated)]"
+                >
                   <span className="inline-flex rounded-xl bg-primary/10 p-3 text-primary">
                     <d.icon className="h-5 w-5" />
                   </span>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-[11px] uppercase tracking-widest text-muted-foreground">{d.label}</p>
                     {d.href ? (
-                      <a href={d.href} className="text-sm font-medium text-foreground hover:text-primary">
+                      <a href={d.href} className="block truncate text-sm font-medium text-foreground hover:text-primary">
                         {d.value}
                       </a>
                     ) : (
@@ -118,25 +136,25 @@ const ContactSection = () => {
             delay={120}
             className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-elevated)] sm:p-8"
           >
-            <form onSubmit={submit} className="space-y-4">
+            <form onSubmit={submit} className="space-y-4" noValidate>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="c-name">Full name</Label>
                   <Input id="c-name" value={form.name} onChange={set('name')} required maxLength={100} className="h-11" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="c-email">Email</Label>
+                  <Label htmlFor="c-email">Email address</Label>
                   <Input id="c-email" type="email" value={form.email} onChange={set('email')} required maxLength={255} className="h-11" />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="c-phone">Phone (optional)</Label>
-                  <Input id="c-phone" value={form.phone} onChange={set('phone')} maxLength={30} className="h-11" />
+                  <Label htmlFor="c-phone">Phone number (optional)</Label>
+                  <Input id="c-phone" type="tel" value={form.phone} onChange={set('phone')} maxLength={30} className="h-11" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="c-subject">Subject (optional)</Label>
-                  <Input id="c-subject" value={form.subject} onChange={set('subject')} maxLength={150} className="h-11" />
+                  <Label htmlFor="c-subject">Subject</Label>
+                  <Input id="c-subject" value={form.subject} onChange={set('subject')} required maxLength={150} className="h-11" />
                 </div>
               </div>
               <div className="space-y-2">
@@ -150,7 +168,7 @@ const ContactSection = () => {
                   </>
                 ) : (
                   <>
-                    Send message <Send className="ml-2 h-4 w-4" />
+                    Send Message <Send className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>

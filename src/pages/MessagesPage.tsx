@@ -15,6 +15,10 @@ import {
   useRealtimeMessages,
 } from '@/hooks/api/useMessaging';
 import { useCurrentUser } from '@/hooks/api';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ContactInboxPanel from '@/components/ContactInboxPanel';
+import { useContactMessages } from '@/hooks/api/useContactMessages';
+
 import { Send, Megaphone, MessageCircle, Plus, ArrowLeft } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 
@@ -87,9 +91,27 @@ const MessagesPage = () => {
     setShowNewChat(false);
   };
 
+  const { data: contactMessages = [] } = useContactMessages();
+  const unreadEnquiries = contactMessages.filter((m) => m.status === 'unread').length;
+
+
   return (
-    <div className="h-[calc(100vh-7.5rem)]">
+    <Tabs defaultValue="chat" className="flex h-[calc(100vh-7.5rem)] flex-col gap-3">
+      <TabsList className="self-start">
+        <TabsTrigger value="chat">Team chat</TabsTrigger>
+        <TabsTrigger value="enquiries" className="gap-2">
+          Website enquiries
+          {unreadEnquiries > 0 && <Badge className="h-5 min-w-5 px-1.5 text-[10px]">{unreadEnquiries}</Badge>}
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="enquiries" className="mt-0 min-h-0 flex-1">
+        <ContactInboxPanel />
+      </TabsContent>
+
+      <TabsContent value="chat" className="mt-0 min-h-0 flex-1">
       <Card className="grid h-full overflow-hidden md:grid-cols-[300px_1fr]">
+
         {/* Sidebar */}
         <aside className={`flex flex-col border-r border-border bg-card ${activeId ? 'hidden md:flex' : 'flex'}`}>
           <div className="flex items-center justify-between border-b border-border p-4">
@@ -253,7 +275,9 @@ const MessagesPage = () => {
           )}
         </section>
       </Card>
-    </div>
+      </TabsContent>
+    </Tabs>
+
   );
 };
 
