@@ -15,6 +15,10 @@ import {
   useRealtimeMessages,
 } from '@/hooks/api/useMessaging';
 import { useCurrentUser } from '@/hooks/api';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ContactInboxPanel from '@/components/ContactInboxPanel';
+import { useContactMessages } from '@/hooks/api/useContactMessages';
+
 import { Send, Megaphone, MessageCircle, Plus, ArrowLeft } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 
