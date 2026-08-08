@@ -75,13 +75,34 @@ const LandingFooter = () => (
               </button>
             </li>
           </ul>
+
+          <h3 className="mt-8 font-display text-sm font-bold uppercase tracking-widest text-sidebar-primary">Contact</h3>
+          <ul className="mt-4 space-y-2.5 text-sm">
+            <li className="flex items-center gap-2 text-sidebar-foreground/65">
+              <Phone className="h-4 w-4 shrink-0 text-sidebar-primary" />
+              <a href={`tel:${CONTACT_PHONE_TEL}`} className="hover:text-sidebar-accent-foreground">
+                {CONTACT_PHONE_DISPLAY}
+              </a>
+            </li>
+            <li className="flex items-center gap-2 text-sidebar-foreground/65">
+              <Mail className="h-4 w-4 shrink-0 text-sidebar-primary" />
+              <a href={`mailto:${CONTACT_EMAIL}`} className="break-all hover:text-sidebar-accent-foreground">
+                {CONTACT_EMAIL}
+              </a>
+            </li>
+            <li className="flex items-center gap-2 text-sidebar-foreground/65">
+              <MapPin className="h-4 w-4 shrink-0 text-sidebar-primary" />
+              {CONTACT_ADDRESS}
+            </li>
+          </ul>
         </div>
       </div>
 
       <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-sidebar-border pt-6 text-xs text-sidebar-foreground/50 sm:flex-row">
         <p>© {new Date().getFullYear()} ASTERNG. All rights reserved.</p>
-        <p>Aster A+ Fleet · Abuja, Nigeria</p>
+        <p>Aster A+ Fleet · {CONTACT_ADDRESS}</p>
       </div>
+
     </div>
   </footer>
 );
