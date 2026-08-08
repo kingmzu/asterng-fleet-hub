@@ -2,8 +2,8 @@ import { Linkedin, Twitter, Mail } from 'lucide-react';
 import Reveal from './Reveal';
 
 const team = [
-  { name: 'Abdulkarim Muhammad', role: 'Founder & Chief Executive Officer', initials: 'AM' },
-  { name: 'Operations Lead', role: 'Head of Fleet Operations', initials: 'OP' },
+  { name: 'Abdullahi Kabir Muazu', role: 'Founder & Chief Executive Officer', initials: 'AK' },
+  { name: 'Aliyu Muhammad Sani', role: 'OPERATIONAL MANAGER', initials: 'AM' },
   { name: 'Finance Lead', role: 'Head of Finance & Remittance', initials: 'FL' },
   { name: 'Technology Lead', role: 'Head of Platform Engineering', initials: 'TL' },
 ];
