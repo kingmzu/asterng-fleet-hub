@@ -91,7 +91,9 @@ const MessagesPage = () => {
     setShowNewChat(false);
   };
 
+  const { data: contactMessages = [] } = useContactMessages();
   const unreadEnquiries = contactMessages.filter((m) => m.status === 'unread').length;
+
 
   return (
     <Tabs defaultValue="chat" className="flex h-[calc(100vh-7.5rem)] flex-col gap-3">
