@@ -8,12 +8,12 @@ import marketingPhoto from '@/assets/team-marketing.jpg.asset.json';
 import communityPhoto from '@/assets/team-community.jpg.asset.json';
 
 const team = [
-  { name: 'Abdullahi Kabir Muazu', role: 'Founder & Chief Executive Officer', photo: ceoPhoto.url },
-  { name: 'Aliyu Muhammad Sani', role: 'Operational Manager', photo: opsPhoto.url },
-  { name: 'Abdulkadir Halilu', role: 'Business Development & Human Resources Officer', photo: bdPhoto.url },
-  { name: 'Nasir Abdullahi Bardi', role: 'Sales & Customer Success Officer', photo: salesPhoto.url },
-  { name: 'Auwal Musa', role: 'Marketing & Communications Officer', photo: marketingPhoto.url },
-  { name: 'Abdurrahman Kabir Muazu', role: 'Community Engagement Officer', photo: communityPhoto.url },
+  { name: 'Abdullahi Kabir Muazu', role: 'Founder & Chief Executive Officer', photo: ceoPhoto.url, position: 'object-top' },
+  { name: 'Aliyu Muhammad Sani', role: 'Operational Manager', photo: opsPhoto.url, position: 'object-top' },
+  { name: 'Abdulkadir Halilu', role: 'Business Development & Human Resources Officer', photo: bdPhoto.url, position: 'object-center' },
+  { name: 'Nasir Abdullahi Bardi', role: 'Sales & Customer Success Officer', photo: salesPhoto.url, position: 'object-top' },
+  { name: 'Auwal Musa', role: 'Marketing & Communications Officer', photo: marketingPhoto.url, position: 'object-top' },
+  { name: 'Abdurrahman Kabir Muazu', role: 'Community Engagement Officer', photo: communityPhoto.url, position: 'object-top' },
 ];
 
 const TeamSection = () => (
