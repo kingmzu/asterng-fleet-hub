@@ -269,7 +269,9 @@ const MessagesPage = () => {
           )}
         </section>
       </Card>
-    </div>
+      </TabsContent>
+    </Tabs>
+
   );
 };
 
