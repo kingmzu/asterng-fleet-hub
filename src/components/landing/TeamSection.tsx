@@ -41,7 +41,7 @@ const TeamSection = () => (
                 src={m.photo}
                 alt={`${m.name}, ${m.role} at ASTERNG`}
                 loading="lazy"
-                className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-110"
+                className={`h-full w-full object-cover ${m.position || 'object-top'} transition-transform duration-500 group-hover:scale-110`}
               />
             </div>
             <h3 className="mt-5 font-display text-base font-bold text-foreground">{m.name}</h3>
