@@ -5,6 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { buildIlikeOrFilter } from '@/lib/searchFilter';
 
 export type Rider = Tables<'riders'>;
 
@@ -23,7 +24,8 @@ export const useRiders = (
         query = query.eq('status', status);
       }
       if (search) {
-        query = query.or(`full_name.ilike.%${search}%,phone_number.ilike.%${search}%`);
+        const filter = buildIlikeOrFilter(['full_name', 'phone_number'], search);
+        if (filter) query = query.or(filter);
       }
 
       const from = (page - 1) * limit;
