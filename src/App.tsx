@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import RouteMeta from "@/components/RouteMeta";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Home from "@/pages/Home";
 import LoginPage from "@/pages/LoginPage";
@@ -36,6 +37,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <RouteMeta />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<LoginPage />} />
