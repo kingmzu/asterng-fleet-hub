@@ -21,7 +21,7 @@ const LandingFooter = () => (
             <span className="font-display text-lg font-bold text-sidebar-accent-foreground">ASTERNG</span>
           </div>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-sidebar-foreground/60">
-            Smart mobility and fleet management infrastructure for Nigerian cities — metering, tracking, rider
+            Smart mobility and fleet management infrastructure for Nigerian cities. Metering, tracking, rider
             compliance and transparent remittance in one platform.
           </p>
           <div className="mt-6 flex gap-3">

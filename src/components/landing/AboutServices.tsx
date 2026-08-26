@@ -35,8 +35,8 @@ const AboutSection = () => (
           </h2>
           <p className="mt-6 text-base leading-relaxed text-muted-foreground">
             ASTERNG is a Nigerian smart mobility and fleet ownership company. We acquire, assign and operate
-            commercial motorcycles and tricycles, and we back every asset with software — smart metering, GPS,
-            KYC and financial controls — so that riders earn transparently and owners see every naira.
+            commercial motorcycles and tricycles, and we back every asset with software, smart metering, GPS, KYC
+            and financial controls.  So that riders earn transparently and owners see every naira.
           </p>
           <ul className="mt-8 space-y-4">
             {[
@@ -60,8 +60,9 @@ const AboutSection = () => (
             </span>
             <h3 className="mt-4 font-display text-lg font-bold text-foreground">Our Mission</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              To make commercial mobility profitable, safe and transparent through technology that serves both
-              riders and fleet owners.
+              ASTERNG is committed to providing verified commercial riders with access to motorcycles through a
+              disciplined fleet management system, while generating consistent and sustainable revenue through a
+              controlled and transparent remittance model. 
             </p>
           </Reveal>
           <Reveal delay={160} className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
@@ -70,8 +71,9 @@ const AboutSection = () => (
             </span>
             <h3 className="mt-4 font-display text-lg font-bold text-foreground">Our Vision</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              To become West Africa's leading smart mobility infrastructure company, powering thousands of
-              connected vehicles across cities.
+              To build a structured, scalable, and technology-driven motorcycle fleet network that enhances 
+              urban mobility while crea ng sustainable and reliable income opportuni es for riders across 
+              multple regions. 
             </p>
           </Reveal>
           <Reveal
