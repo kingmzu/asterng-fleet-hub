@@ -60,8 +60,9 @@ const AboutSection = () => (
             </span>
             <h3 className="mt-4 font-display text-lg font-bold text-foreground">Our Mission</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              To make commercial mobility profitable, safe and transparent through technology that serves both
-              riders and fleet owners.
+              ASTERNG is committed to providing verified commercial riders with access to motorcycles through a
+              disciplined fleet management system, while generating consistent and sustainable revenue through a
+              controlled and transparent remittance model. 
             </p>
           </Reveal>
           <Reveal delay={160} className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
