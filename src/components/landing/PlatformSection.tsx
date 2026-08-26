@@ -3,7 +3,7 @@ import Reveal from './Reveal';
 import { useCountUp } from '@/hooks/useReveal';
 
 const previewCards = [
-  { icon: Gauge, title: 'Smart Meter', desc: 'Riders start a trip and watch the fare build live — distance, time, night rate and extras.' },
+  { icon: Gauge, title: 'Smart Meter', desc: 'Riders start a trip and watch the fare build live with distance, time, night rate and extras.' },
   { icon: MapPin, title: 'Live Tracking', desc: 'Operations see every rider on the map with colour-coded on-trip, idle and offline states.' },
   { icon: Wallet, title: 'Remittances', desc: 'Cash, transfer and mobile money captured, allocated to overdue balances automatically.' },
   { icon: Users, title: 'Rider KYC', desc: 'Documents uploaded, reviewed and verified with a live compliance score per rider.' },

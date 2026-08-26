@@ -35,8 +35,8 @@ const AboutSection = () => (
           </h2>
           <p className="mt-6 text-base leading-relaxed text-muted-foreground">
             ASTERNG is a Nigerian smart mobility and fleet ownership company. We acquire, assign and operate
-            commercial motorcycles and tricycles, and we back every asset with software — smart metering, GPS,
-            KYC and financial controls — so that riders earn transparently and owners see every naira.
+            commercial motorcycles and tricycles, and we back every asset with software, smart metering, GPS, KYC
+            and financial controls.  So that riders earn transparently and owners see every naira.
           </p>
           <ul className="mt-8 space-y-4">
             {[
