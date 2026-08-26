@@ -24,7 +24,8 @@ export const useMotorcycles = (
         query = query.eq('status', status);
       }
       if (search) {
-        query = query.or(`plate_number.ilike.%${search}%,make.ilike.%${search}%,model.ilike.%${search}%`);
+        const filter = buildIlikeOrFilter(['plate_number', 'make', 'model'], search);
+        if (filter) query = query.or(filter);
       }
 
       const from = (page - 1) * limit;
