@@ -28,10 +28,17 @@ const LoginPage = () => {
   const { isStaff, isRider, isLoading: rolesLoading } = useRoles();
   const isPending = loginPending || signupPending;
 
+  const rawNext = new URLSearchParams(location.search).get('next');
+  const nextPath = rawNext && /^\/(?!\/)/.test(rawNext) ? rawNext : null;
+
   useEffect(() => {
     if (!justLoggedIn || !user || rolesLoading) return;
+    if (nextPath) {
+      window.location.href = nextPath;
+      return;
+    }
     navigate(isStaff ? '/dashboard' : isRider ? '/smart-meter' : '/dashboard', { replace: true });
-  }, [justLoggedIn, user, rolesLoading, isStaff, isRider, navigate]);
+  }, [justLoggedIn, user, rolesLoading, isStaff, isRider, navigate, nextPath]);
 
 
   const handleSubmit = (e: React.FormEvent) => {
