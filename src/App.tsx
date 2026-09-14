@@ -20,7 +20,6 @@ import SettingsPage from "@/pages/SettingsPage";
 import MessagesPage from "@/pages/MessagesPage";
 import SmartMeterPage from "@/pages/SmartMeterPage";
 import PendingApprovalPage from "@/pages/PendingApprovalPage";
-import OAuthConsent from "@/pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,7 +43,6 @@ const App = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<LoginPage />} />
             <Route path="/pending-approval" element={<PendingApprovalPage />} />
-            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
             <Route path="/dashboard" element={wrap(<Dashboard />, { staffOnly: true })} />
             <Route path="/riders" element={wrap(<RidersPage />, { staffOnly: true })} />
             <Route path="/motorcycles" element={wrap(<MotorcyclesPage />, { staffOnly: true })} />
