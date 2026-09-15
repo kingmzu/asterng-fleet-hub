@@ -254,7 +254,7 @@ const ServicesSection = () => (
               <s.icon className="h-5 w-5" />
             </span>
             <h3 className="mt-4 font-display text-base font-bold text-foreground">{s.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.desc}</p>
+            <div className="mt-4">{s.widget}</div>
           </Reveal>
         ))}
       </div>
