@@ -72,7 +72,7 @@ const AboutSection = () => (
             <h3 className="mt-4 font-display text-lg font-bold text-foreground">Our Vision</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               To build a structured, scalable, and technology-driven motorcycle fleet network that enhances 
-              urban mobility while crea ng sustainable and reliable income opportuni es for riders across 
+              urban mobility while creating sustainable and reliable income opportunities for riders across 
               multple regions. 
             </p>
           </Reveal>
